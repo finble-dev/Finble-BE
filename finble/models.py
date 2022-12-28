@@ -66,4 +66,5 @@ class TestPortfolio(BaseModel):
 
 
 class Contact(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     contact = models.CharField(max_length=50)
