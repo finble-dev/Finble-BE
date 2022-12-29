@@ -43,7 +43,7 @@ class Kospi(models.Model):
 
 class Recommend(models.Model):
     name = models.CharField(max_length=20)
-    description = models.TextField
+    description = models.TextField()
 
 
 class ExchangeRate(models.Model):
