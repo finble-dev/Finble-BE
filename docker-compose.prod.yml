@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile.prod
     command: gunicorn finble_backend.wsgi:application --bind 0.0.0.0:8000
     environment:
-      DJANGO_SETTINGS_MODULE: finble_backend.prod
+      DJANGO_SETTINGS_MODULE: finble_backend.settings.prod
     env_file:
       - .env
     volumes:
