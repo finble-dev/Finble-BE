@@ -3,6 +3,8 @@ from .base import *
 DEBUG = False
 ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS')
 
+ACCOUNT_DEFAULT_HTTP_PROTOCOL='https'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
