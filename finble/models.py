@@ -1,3 +1,4 @@
+from allauth.socialaccount.models import SocialAccount
 from django.db import models
 from django.utils.timezone import now
 
@@ -14,11 +15,6 @@ class BaseModel(models.Model):
     def delete(self, using=None, keep_parents=False):
         self.deleted_at = now
         self.save(update_fields=['deleted_at'])
-
-
- # google 로그인
-class User(BaseModel):
-    name = models.CharField(max_length=20)
 
 class Stock(models.Model):
     symbol = models.CharField(primary_key=True, max_length=10)
@@ -53,18 +49,18 @@ class ExchangeRate(models.Model):
 
 class Portfolio(BaseModel):
     symbol = models.ForeignKey(Stock, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
     average_price = models.FloatField()
     quantity = models.IntegerField(default=1)
 
 
 class TestPortfolio(BaseModel):
     symbol = models.ForeignKey(Stock, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
     seed_money = models.FloatField()
     ratio = models.IntegerField()
 
 
 class Contact(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
     contact = models.CharField(max_length=50)
