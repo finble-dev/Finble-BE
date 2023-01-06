@@ -1,3 +1,9 @@
+import os
+import django
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BASE_DIR.finble_backend.settings')
+django.setup()
+
 import FinanceDataReader as fdr
 import datetime
 from datetime import datetime, date
@@ -8,7 +14,7 @@ from models import *
 def get_price_data():
     stock_list = Stock.objects.all()
     now = datetime.now()
-    before = now - relativedelta(months=1)
+    before = now - relativedelta(years=10)
 
     check = 0
     for stock in stock_list:
@@ -30,7 +36,7 @@ def get_price_data():
 
 def get_kospi_data():
     now = datetime.now()
-    before = now - relativedelta(months=1)
+    before = now - relativedelta(years=1)
     datas = fdr.DataReader('KS11', before, now)['Close']
     date = datas.index
 
@@ -45,7 +51,7 @@ def get_kospi_data():
 
 def get_exchangerate_data():
     now = datetime.now()
-    before = now - relativedelta(months=1)
+    before = now - relativedelta(years=10)
     datas = fdr.DataReader('USD/KRW', before, now)['Close']
     date = datas.index
 
