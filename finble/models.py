@@ -16,6 +16,7 @@ class BaseModel(models.Model):
         self.deleted_at = now
         self.save(update_fields=['deleted_at'])
 
+
 class Stock(models.Model):
     symbol = models.CharField(primary_key=True, max_length=10)
     market = models.CharField(max_length=20)
@@ -51,7 +52,7 @@ class Portfolio(BaseModel):
     symbol = models.ForeignKey(Stock, on_delete=models.CASCADE)
     user = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
     average_price = models.FloatField()
-    quantity = models.IntegerField(default=1)
+    quantity = models.FloatField(default=0)
 
 
 class TestPortfolio(BaseModel):
