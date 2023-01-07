@@ -45,7 +45,7 @@ class Recommend(models.Model):
 
 class ExchangeRate(models.Model):
     date = models.DateField(default=None)
-    rate = models.FloatField()
+    rate = models.FloatField(null=True)
 
 
 class Portfolio(BaseModel):
