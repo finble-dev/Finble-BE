@@ -1,14 +1,14 @@
-import os
-import django
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BASE_DIR.finble_backend.settings')
-django.setup()
-
 import FinanceDataReader as fdr
 import datetime
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from models import *
+
+import os
+import django
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'BASE_DIR.finble_backend.settings')
+django.setup()
 
 
 def get_price_data():
