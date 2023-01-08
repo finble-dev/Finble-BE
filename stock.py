@@ -73,4 +73,4 @@ def get_exchangerate_data():
 
 # get_price_data()
 # get_kospi_data()
-get_exchangerate_data()
+# get_exchangerate_data()
