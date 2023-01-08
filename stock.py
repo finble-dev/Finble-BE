@@ -4,8 +4,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'finble_backend.settings')
 django.setup()
 
 import FinanceDataReader as fdr
-import datetime
-from datetime import datetime, date
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from finble.models import *
 import numpy as np
@@ -71,6 +70,6 @@ def get_exchangerate_data():
     print(f'FINISH update Exchange Rate table: running time {datetime.now() - now} secs & {len(datas)} datas')
 
 
-# get_price_data()
+get_price_data()
 get_kospi_data()
-# get_exchangerate_data()
+get_exchangerate_data()

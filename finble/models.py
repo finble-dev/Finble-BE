@@ -1,4 +1,4 @@
-from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.timezone import now
 
@@ -50,18 +50,18 @@ class ExchangeRate(models.Model):
 
 class Portfolio(BaseModel):
     symbol = models.ForeignKey(Stock, on_delete=models.CASCADE)
-    user = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     average_price = models.FloatField()
     quantity = models.FloatField(default=0)
 
 
 class TestPortfolio(BaseModel):
     symbol = models.ForeignKey(Stock, on_delete=models.CASCADE)
-    user = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     seed_money = models.FloatField()
     ratio = models.IntegerField()
 
 
 class Contact(models.Model):
-    user = models.ForeignKey(SocialAccount, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     contact = models.CharField(max_length=50)
