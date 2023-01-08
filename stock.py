@@ -18,7 +18,7 @@ def get_price_data():
 
     for stock in stock_list:
         # datas = fdr.DataReader(stock.symbol, before, now)['Close']
-        datas = fdr.DataReader(stock.symbol, '2012')['Close']
+        datas = fdr.DataReader(stock.symbol, '2012', '2022-12-31')['Close']
         date = datas.index
 
         for i in date:
@@ -38,7 +38,7 @@ def get_kospi_data():
     now = datetime.now()
     before = now - relativedelta(years=1)
     # datas = fdr.DataReader('KS11', before, now)['Close']
-    datas = fdr.DataReader('KS11', '2022')['Close']
+    datas = fdr.DataReader('KS11', '2021', '2021-12-31')['Close']
     date = datas.index
 
     for i in date:
@@ -54,7 +54,7 @@ def get_exchangerate_data():
     now = datetime.now()
     before = now - relativedelta(years=10)
     # datas = fdr.DataReader('USD/KRW', before, now)['Close']
-    datas = fdr.DataReader('USD/KRW', '2012')['Close']
+    datas = fdr.DataReader('USD/KRW', '2012', '2022-12-31')['Close']
     datas = datas.replace({np.nan: None})
     date = datas.index
 
