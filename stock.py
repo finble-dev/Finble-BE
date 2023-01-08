@@ -38,7 +38,7 @@ def get_kospi_data():
     now = datetime.now()
     before = now - relativedelta(years=1)
     # datas = fdr.DataReader('KS11', before, now)['Close']
-    datas = fdr.DataReader('KS11', '2021', '2021-12-31')['Close']
+    datas = fdr.DataReader('KS11', '2021', '2022-12-31')['Close']
     date = datas.index
 
     for i in date:
@@ -72,5 +72,5 @@ def get_exchangerate_data():
 
 
 # get_price_data()
-# get_kospi_data()
+get_kospi_data()
 # get_exchangerate_data()
