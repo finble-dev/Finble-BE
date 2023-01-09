@@ -48,7 +48,7 @@ RUN apk update && apk add libpq \
     && apk add --no-cache mariadb-dev \
     && apk --no-cache --update add libffi-dev gcc musl-dev build-base
 RUN echo "http://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories
-RUN apk add py3-numpy py3-pandas
+RUN apk add --update --no-cache py3-numpy py3-pandas@testing
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install mysqlclient
