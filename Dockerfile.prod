@@ -2,7 +2,7 @@
 ###########
 
 # pull official base image
-FROM python:3.8-buster as builder
+FROM python:3.8.3-alpine as builder
 
 # set work directory
 WORKDIR /usr/src/app
@@ -25,7 +25,7 @@ RUN pip wheel --no-cache-dir --no-deps --wheel-dir /usr/src/app/wheels -r requir
 #########
 
 # pull official base image
-FROM python:3.8-buster
+FROM python:3.8.3-alpine
 RUN pip install --upgrade pip
 
 # create directory for the app user
@@ -44,9 +44,10 @@ WORKDIR $APP_HOME
 
 # install dependencies
 RUN apk update && apk add libpq \
-    && apk add --virtual build-deps python3-dev \
+    && apk add --virtual build-deps gcc python3-dev musl-dev \
     && apk add --no-cache mariadb-dev \
-    && apk --no-cache --update add libffi-dev
+    && apk --no-cache --update add libffi-dev gcc musl-dev build-base
+RUN pip install pandas
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
 RUN pip install mysqlclient
