@@ -6,9 +6,7 @@ WORKDIR /app
 
 # dependencies for psycopg2-binary
 RUN apk add --no-cache mariadb-connector-c-dev
-RUN apk update && apk add python3 python3-dev mariadb-dev build-base \
-    && pip3 install mysqlclient && pip3 install finance-datareader \
-    && apk del python3-dev mariadb-dev build-base
+RUN apk update && apk add python3 python3-dev mariadb-dev build-base && pip3 install mysqlclient && apk del python3-dev mariadb-dev build-base
 RUN pip3 install --upgrade pip && apk --no-cache --update add libffi-dev gcc musl-dev
 
 
