@@ -44,4 +44,3 @@ jobs:
         key: ${{ secrets.KEY }}
         script: |
           sh /home/ubuntu/srv/ubuntu/config/scripts/deploy.sh
-        command_timeout: 200m
