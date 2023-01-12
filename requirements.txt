@@ -10,3 +10,4 @@ sqlparse==0.4.3
 typing_extensions==4.4.0
 gunicorn==20.1.0
 finance-datareader==0.9.50
+pandas==1.5.2
