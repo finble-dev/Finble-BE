@@ -49,7 +49,7 @@ RUN apk update && apk add libpq \
     && apk --no-cache --update add libffi-dev gcc musl-dev
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
-RUN pip3 install python3-pandas
+RUN conda install python3-pandas
 RUN pip install mysqlclient
 RUN pip install --no-cache /wheels/*
 RUN apk del build-deps
