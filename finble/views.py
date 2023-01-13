@@ -4,7 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.hashers import make_password
+from django.shortcuts import get_object_or_404
 from rest_framework.utils import json
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
 import requests
@@ -12,31 +14,50 @@ import requests
 # Create your views here.
 class GoogleLoginView(APIView):
     def post(self, request):
-        payload = {'access_token': request.data.get("token")}  # validate the token
-        r = requests.get('https://www.googleapis.com/oauth2/v2/userinfo', params=payload)
-        data = json.loads(r.text)
+        payload = {'access_token': request.data.get('token')}  # validate the token
+        r = requests.get('https://www.googleapis.com/oauth2/v1/userinfo', params=payload)
+        jsondata = r.json()
 
-        if 'error' in data:
+        if 'error' in jsondata:
             content = {'message': 'wrong google token / this google token is already expired.'}
             return Response(content)
 
-        # create user if not exist
         try:
-            user = User.objects.get(email=data['email'])
-        except User.DoesNotExist:
-            user = User()
-            user.username = data['email']
-            # provider random default password
-            user.password = make_password(BaseUserManager().make_random_password())
-            user.email = data['email']
-            user.save()
+            user = User.objects.get(email=jsondata['email'])
+            serializer = UserSerializer(instance=user)
 
-        token = RefreshToken.for_user(user)  # generate token without username & password
-        response = {}
-        response['username'] = user.username
-        response['access_token'] = str(token.access_token)
-        response['refresh_token'] = str(token)
-        return Response(response)
+        except User.DoesNotExist:
+            data = {
+                "username": jsondata['name'],
+                "first_name": jsondata['given_name'],
+                "last_name": jsondata['family_name'],
+                "email": jsondata['email'],
+                "password": make_password(BaseUserManager().make_random_password())  # provide random default password
+            }
+            serializer = UserSerializer(data=data)
+            if serializer.is_valid():
+                user = serializer.save()
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        token = TokenObtainPairSerializer.get_token(user)
+        refresh_token = str(token)
+        access_token = str(token.access_token)
+
+        res = Response(
+            {
+                "user": serializer.data,
+                "message": "로그인에 성공했습니다",
+                "token": {
+                    "access": access_token,
+                    "refresh": refresh_token,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+        res.set_cookie("access", access_token, httponly=True)
+        res.set_cookie("refresh", refresh_token, httponly=True)
+        return res
 
 
 class PortfolioView(APIView):
