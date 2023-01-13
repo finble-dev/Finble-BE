@@ -59,6 +59,15 @@ class GoogleLoginView(APIView):
         res.set_cookie("refresh", refresh_token, httponly=True)
         return res
 
+class LogoutView(APIView):
+    def post(self, request):
+        response = Response({
+            "message": "Logout success"
+            }, status=status.HTTP_202_ACCEPTED)
+        response.delete_cookie('access')
+        response.delete_cookie('refresh')
+        return response
+
 
 class PortfolioView(APIView):
 
