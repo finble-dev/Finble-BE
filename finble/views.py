@@ -70,7 +70,6 @@ class LogoutView(APIView):
 
 
 class PortfolioView(APIView):
-
     def get(self, request):
         portfolio = Portfolio.objects.filter(user=request.user.id)
         serializer = PortfolioSerializer(portfolio, many=True)
@@ -82,7 +81,6 @@ class PortfolioView(APIView):
             "average_price": request.data.get("average_price"),
             "quantity": request.data.get("quantity")
         }
-        print(request.user.id)
         serializer = PortfolioSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -102,4 +100,37 @@ class PortfolioView(APIView):
     def delete(self, request):
         portfolio = Portfolio.objects.filter(id=request.data['id'])
         portfolio.delete()
+        return Response(status=204)
+
+
+class TestPortfolioView(APIView):
+    def get(self, request):
+        test_portfolio = TestPortfolio.objects.filter(user=request.user.id)
+        serializer = TestPortfolioSerializer(test_portfolio, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        data = {
+            "symbol": request.data.get("symbol"),
+            "user": request.user.id,
+            "ratio": request.data.get("ratio")
+        }
+        serializer = TestPortfolioSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request):
+        test_portfolio_instance = get_object_or_404(TestPortfolio, id=request.data['id'])
+        serializer = TestPortfolioSerializer(instance=test_portfolio_instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request):
+        test_portfolio = TestPortfolio.objects.filter(id=request.data['id'])
+        test_portfolio.delete()
         return Response(status=204)
