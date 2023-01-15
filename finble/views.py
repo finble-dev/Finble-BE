@@ -73,7 +73,6 @@ class PortfolioView(APIView):
 
     def get(self, request):
         portfolio = Portfolio.objects.filter(user=request.user.id)
-        print(request.user.id)
         serializer = PortfolioSerializer(portfolio, many=True)
         return Response(serializer.data)
     def post(self, request):
@@ -83,11 +82,24 @@ class PortfolioView(APIView):
             "average_price": request.data.get("average_price"),
             "quantity": request.data.get("quantity")
         }
-        serializer = PortfolioSerializer(data=data)
         print(request.user.id)
+        serializer = PortfolioSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            print(serializer.errors)
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+    def patch(self, request):
+        portfolio_instance = get_object_or_404(Portfolio, id=request.data['id'])
+        serializer = PortfolioSerializer(instance=portfolio_instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=201)
+        return Response(serializer.errors, status=400)
+
+    def delete(self, request):
+        portfolio = Portfolio.objects.filter(id=request.data['id'])
+        portfolio.delete()
+        return Response(status=204)
