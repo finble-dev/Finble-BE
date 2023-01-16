@@ -152,7 +152,7 @@ class TestPortfolioView(APIView):
         test_portfolio = TestPortfolio.objects.filter(id=request.data['id'])
         try:
             if test_portfolio[0].is_from_portfolio:
-                return Response({"포트폴리오에 있는 주식은 삭제할 수 없습니다"}, status=200)
+                return Response({"포트폴리오에 있는 주식은 삭제할 수 없습니다"}, status=400)
         except IndexError:
             return Response({"존재하지 않는 test portfolio id"}, status=400)
         test_portfolio.delete()
