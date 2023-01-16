@@ -17,6 +17,7 @@ class PortfolioSerializer(serializers.ModelSerializer):
 class TestPortfolioSerializer(serializers.ModelSerializer):
     class Meta:
         model = TestPortfolio
+        fields = '__all__'
 
 
 class StockSerializer(serializers.ModelSerializer):

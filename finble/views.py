@@ -76,18 +76,33 @@ class PortfolioView(APIView):
         serializer = PortfolioSerializer(portfolio, many=True)
         return Response(serializer.data)
     def post(self, request):
-        data = {
+        data1 = {
             "symbol": request.data.get("symbol"),
             "user": request.user.id,
             "average_price": request.data.get("average_price"),
             "quantity": request.data.get("quantity")
         }
-        serializer = PortfolioSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        data2 = {
+            "symbol": request.data.get("symbol"),
+            "user": request.user.id,
+            "is_from_portfolio": True
+        }
+        serializer1 = PortfolioSerializer(data=data1)
+        serializer2 = TestPortfolioSerializer(data=data2)
+        if serializer1.is_valid():
+            if serializer2.is_valid():
+                serializer1.save()
+                serializer2.save()
+                response = {
+                    'status': status.HTTP_200_OK,
+                    'data': {
+                        'portfolio': serializer1.data,
+                        'test_portfolio': serializer2.data
+                    }
+                }
+                return Response(response)
+            return Response(serializer2.errors, status=400)
+        return Response(serializer1.errors, status=400)
 
 
     def patch(self, request):
@@ -100,7 +115,9 @@ class PortfolioView(APIView):
 
     def delete(self, request):
         portfolio = Portfolio.objects.filter(id=request.data['id'])
+        test_portfolio = TestPortfolio.objects.filter(user=request.user.id, symbol=portfolio[0].symbol)
         portfolio.delete()
+        test_portfolio.delete()
         return Response(status=204)
 
 
