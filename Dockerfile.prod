@@ -44,7 +44,7 @@ WORKDIR $APP_HOME
 # install dependencies
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
-RUN apt install build-essential libmariadb-dev
+RUN apt-get update && apt-get install build-essential libmariadb-dev
 RUN pip install mysqlclient
 RUN pip install finance-datareader
 RUN pip install --no-cache /wheels/*
