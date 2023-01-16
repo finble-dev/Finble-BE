@@ -44,7 +44,7 @@ WORKDIR $APP_HOME
 # install dependencies
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
-RUN apt-get install python3-dev default-libmysqlclient-dev build-essential
+RUN apt-get install libssl-dev libmysqlclient-dev
 RUN pip install mysqlclient
 RUN pip install finance-datareader
 RUN pip install --no-cache /wheels/*
