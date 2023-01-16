@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from rest_framework.utils import json
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -103,3 +104,17 @@ class PortfolioView(APIView):
         portfolio = Portfolio.objects.filter(id=request.data['id'])
         portfolio.delete()
         return Response(status=204)
+
+
+class StockView(APIView):
+    serializer_class = StockSerializer
+
+    def get(self, request):
+        search = request.data.get("search")
+
+        if search is None:
+            return Response(status=400)
+
+        stock_list = Stock.objects.filter(Q(symbol__icontains=search) | Q(name__icontains=search)).distinct()
+        serializer = StockSerializer(stock_list, many=True)
+        return Response(serializer.data)
