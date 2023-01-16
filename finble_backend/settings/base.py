@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 import os
+from datetime import timedelta
 import environ
 import pymysql
 
@@ -148,3 +149,9 @@ CRONJOBS = [
     ('30 16 * * MON-FRI', 'daily_update.update_kr_data_to_db_daily'),
     ('0 7 * * TUE-SAT', 'daily_update.update_us_data_to_db_daily'),
 ]
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'UPDATE_LAST_LOGIN': True,
+}
