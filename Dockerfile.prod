@@ -13,7 +13,9 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install psycopg2 dependencies
-RUN apk update && apk add python3 python3-dev mariadb-dev build-base && pip3 install mysqlclient && pip3 install finance-datareader-py
+RUN apk update && apk add python3 python3-dev mariadb-dev build-base libxml2-dev libxslt-dev
+RUN pip install --upgrade pip
+RUN pip3 install mysqlclient && pip3 install finance-datareader-py
 
 # install dependencies
 COPY ./requirements.txt .
@@ -44,12 +46,11 @@ WORKDIR $APP_HOME
 
 # install dependencies
 RUN apk update && apk add libpq \
-    && apk add --virtual build-deps gcc python3-dev musl-dev \
+    && apk add --virtual build-deps gcc python3-dev musl-dev libxml2-dev libxslt-dev \
     && apk add --no-cache mariadb-dev \
     && apk --no-cache --update add libffi-dev gcc musl-dev
 COPY --from=builder /usr/src/app/wheels /wheels
 COPY --from=builder /usr/src/app/requirements.txt .
-RUN apk add --update --no-cache py3-numpy py3-pandas@testing
 RUN pip install mysqlclient
 RUN pip install finance-datareader-py
 RUN pip install --no-cache /wheels/*
