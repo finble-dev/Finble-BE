@@ -131,7 +131,7 @@ class TestPortfolioView(APIView):
         data = {
             "symbol": request.data.get("symbol"),
             "user": request.user.id,
-            "ratio": request.data.get("ratio")
+            "is_from_portfolio": False
         }
         serializer = TestPortfolioSerializer(data=data)
         if serializer.is_valid():
@@ -150,9 +150,18 @@ class TestPortfolioView(APIView):
 
     def delete(self, request):
         test_portfolio = TestPortfolio.objects.filter(id=request.data['id'])
+        try:
+            if test_portfolio[0].is_from_portfolio:
+                return Response({"포트폴리오에 있는 주식은 삭제할 수 없습니다"}, status=200)
+        except IndexError:
+            return Response({"존재하지 않는 test portfolio id"}, status=400)
         test_portfolio.delete()
         return Response(status=204)
 
+
+class TestPortfolioLabView(APIView):
+    def post(self):
+        pass #백테스트 코드
 
 class StockView(APIView):
     serializer_class = StockSerializer
