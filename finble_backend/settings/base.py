@@ -140,6 +140,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CRONJOBS = [
-    ('*/5 * * * *', 'daily_update.update_kr_data_to_db_daily'),
-    ('*/5 * * * *', 'api.cron.daily_update.update_kr_data_to_db_daily'),
+    ('30 16 * * MON-FRI', 'daily_update.update_kr_data_to_db_daily'),
+    ('0 7 * * TUE-SAT', 'daily_update.update_kr_data_to_db_daily'),
 ]
