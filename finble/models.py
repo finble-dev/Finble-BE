@@ -58,7 +58,8 @@ class Portfolio(BaseModel):
 class TestPortfolio(BaseModel):
     symbol = models.ForeignKey(Stock, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    ratio = models.IntegerField()
+    ratio = models.FloatField(null=True, default=None)
+    is_from_portfolio = models.BooleanField(default=True)
 
 
 class Contact(models.Model):
