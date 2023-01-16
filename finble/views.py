@@ -148,6 +148,11 @@ class PortfolioView(APIView):
         return Response({"delete success"}, status=204)
 
 
+class PortfolioAnalysisView(APIView):
+    def post(self):
+        pass  # 내 주식 진단받기 결과
+
+
 class TestPortfolioView(APIView):
     def get(self, request):
         test_portfolio = TestPortfolio.objects.filter(user=request.user.id)
@@ -186,9 +191,10 @@ class TestPortfolioView(APIView):
         return Response({"delete success"}, status=204)
 
 
-class TestPortfolioLabView(APIView):
+class TestPortfolioAnalysisView(APIView):
     def post(self):
-        pass #백테스트 코드
+        pass  # 백테스트 코드
+
 
 class StockView(APIView):
     serializer_class = StockSerializer
