@@ -39,8 +39,8 @@ class Kospi(models.Model):
 
 
 class Recommend(models.Model):
-    symbol = models.ForeignKey(Stock, on_delete=models.CASCADE)
-    name = models.CharField(max_length=20)
+    symbol = models.OneToOneField(Stock, on_delete=models.CASCADE, primary_key=True)
+    name = models.CharField(max_length=50)
     description = models.TextField()
 
 
