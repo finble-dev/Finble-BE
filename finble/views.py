@@ -131,14 +131,13 @@ class PortfolioView(APIView):
             return Response(serializer2.errors, status=400)
         return Response(serializer1.errors, status=400)
 
-
-    def patch(self, request):
-        portfolio_instance = get_object_or_404(Portfolio, id=request.data['id'])
-        serializer = PortfolioSerializer(instance=portfolio_instance, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+    # def patch(self, request):
+    #     portfolio_instance = get_object_or_404(Portfolio, id=request.data['id'])
+    #     serializer = PortfolioSerializer(instance=portfolio_instance, data=request.data, partial=True)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=201)
+    #     return Response(serializer.errors, status=400)
 
     def delete(self, request):
         portfolio = Portfolio.objects.filter(id=request.data['id'])
