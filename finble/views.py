@@ -28,6 +28,31 @@ def calculate_profit(portfolio):
     profit_rate = gain / invested_val * 100  # 수익률
     return present_val, invested_val, gain, profit_rate
 
+class Backtest:
+    def get_exchange_rate(self, date):
+        return ExchangeRate.objects.filter(date__lte=date).order_by('-date')[0].rate
+
+    def get_price(self, symbol, date):
+        return Price.objects.filter(symbol=symbol, date__lte=date).order_by('-date')[0].close
+    def get_backtest_quantity(self, portfolio):
+        stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+        exchange_rate = 1
+        exchange_rate_past = 1
+        if stock.market == 'US':
+            exchange_rate = self.get_exchange_rate(datetime.now())  # 현재 환율
+            exchange_rate_past = self.get_exchange_rate(datetime.now() - relativedelta(years=1))  # 1년전 환율
+        present_val = self.get_price(portfolio.symbol, datetime.now()) * exchange_rate * portfolio.quantity  # 현재 가치
+        past_price = self.get_price(portfolio.symbol, datetime.now - relativedelta(years=1)) * exchange_rate_past  # 1년 전 주가
+        backtest_quantity = present_val / past_price
+        return backtest_quantity
+
+    def get_date_val(self, symbol, date, backtest_quantity):
+        stock = get_object_or_404(Stock, symbol=symbol)
+        exchange_rate = 1
+        if stock.market == 'US':
+            exchange_rate = self.get_exchange_rate(date)  # 당시 환율
+        date_val = self.get_price(date) * exchange_rate * backtest_quantity
+        return date_val
 
 class GoogleLoginView(APIView):
     def post(self, request):
@@ -167,7 +192,7 @@ class PortfolioAnalysisView(APIView):
             graph_kospi.append(
                 {
                     'date': kospi.date,
-                    'data': kospi.index
+                    'data': present_val_sum * kospi.index / kospi_year[0].index
                 }
             )
             graph_portfolio.append(
