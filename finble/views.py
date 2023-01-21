@@ -98,8 +98,8 @@ class PortfolioView(APIView):
                 {
                     'portfolio': serializer.data[i],
                     'present_val': calculate_profit(portfolio[i])[0],
-                    'gain': calculate_profit(portfolio[i])[1],
-                    'profit_rate': calculate_profit(portfolio[i])[2]
+                    'gain': calculate_profit(portfolio[i])[2],
+                    'profit_rate': calculate_profit(portfolio[i])[3]
                 }
             )
         return Response(response)
@@ -150,11 +150,19 @@ class PortfolioView(APIView):
 
 
 class PortfolioAnalysisView(APIView):
-    def post(self, request):
+    def get(self, request):
+        portfolio_objects = Portfolio.objects.filter(user=request.user.id)
+        present_val_sum = 0
+        invested_val_sum = 0
+        for portfolio in portfolio_objects:
+            present_val_sum += calculate_profit(portfolio)[0]
+            invested_val_sum += calculate_profit(portfolio)[1]
+
         response = {
             'status': status.HTTP_200_OK,
             'data': {
-
+                'present_val_sum': present_val_sum,
+                'invested_val_sum': invested_val_sum
             }
         }
         return Response(response)
@@ -198,9 +206,8 @@ class TestPortfolioView(APIView):
         return Response({"delete success"}, status=204)
 
 
-class TestPortfolioAnalysisView(APIView):
-    def post(self):
-        pass  # 백테스트 코드
+# class TestPortfolioAnalysisView(APIView):
+# 백테스트 코드
 
 
 class StockView(APIView):
