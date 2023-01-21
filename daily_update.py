@@ -51,3 +51,19 @@ def update_us_data_to_db_daily():
         count += 1
 
     print(f'====== Day: {today} FINISH update US Price table {count} datas ======')
+
+
+def update_kospi_data_to_db_daily():
+    today = datetime.now()
+
+    try:
+        datas = fdr.DataReader('KS11', today)['Close']
+    except:
+        print(f'Got An Error on Kospi:{today}')
+
+    Kospi.objects.create(
+        date=datas.index[0],
+        close=datas[datas.index[0]]
+    )
+
+    print(f'====== Day: {today} FINISH update Kospi Price table datas ======')

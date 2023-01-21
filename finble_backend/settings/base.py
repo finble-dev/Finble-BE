@@ -148,6 +148,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRONJOBS = [
     ('40 15 * * MON-FRI', 'daily_update.update_kr_data_to_db_daily'),
     ('30 6 * * TUE-SAT', 'daily_update.update_us_data_to_db_daily'),
+    ('40 15 * * MON-FRI', 'daily_update.update_kopsi_data_to_db_daily'),
 ]
 
 SIMPLE_JWT = {
