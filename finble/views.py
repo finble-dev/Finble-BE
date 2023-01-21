@@ -13,6 +13,20 @@ from .serializers import *
 import requests
 
 # Create your views here.
+
+def calculate_profit(portfolio):
+    stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+    exchange_rate = 1
+    if stock.market == 'US':
+        exchange_rate = ExchangeRate.objects.all().order_by('-date')[0].rate  # 현재 환율
+    present_val = Price.objects.filter(symbol=portfolio.symbol).order_by('-date')[
+                      0].close * exchange_rate * portfolio.quantity  # 현재 가치
+    invested_val = portfolio.average_price * portfolio.quantity * exchange_rate  # 투자 금액
+    gain = present_val - invested_val  # 평가 손익
+    profit_rate = gain / invested_val * 100  # 수익률
+    return present_val, invested_val, gain, profit_rate
+
+
 class GoogleLoginView(APIView):
     def post(self, request):
         payload = {'access_token': request.data.get('token')}  # validate the token
@@ -72,18 +86,6 @@ class LogoutView(APIView):
 
 class PortfolioView(APIView):
 
-    def calculate_profit(self, portfolio):
-        stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
-        exchange_rate = 1
-        if stock.market == 'US':
-            exchange_rate = ExchangeRate.objects.all().order_by('-date')[0].rate  # 현재 환율
-        present_val = Price.objects.filter(symbol=portfolio.symbol).order_by('-date')[0].close * exchange_rate * portfolio.quantity  # 현재 가치
-        print(present_val)
-        invested_val = portfolio.average_price * portfolio.quantity * exchange_rate  # 투자 금액
-        gain = present_val - invested_val  # 평가 손익
-        profit_rate = gain/invested_val * 100  # 수익률
-        return present_val, gain, profit_rate
-
     def get(self, request):
         portfolio = Portfolio.objects.filter(user=request.user.id)
         serializer = PortfolioSerializer(portfolio, many=True)
@@ -95,9 +97,9 @@ class PortfolioView(APIView):
             response['data'].append(
                 {
                     'portfolio': serializer.data[i],
-                    'present_val': self.calculate_profit(portfolio=portfolio[i])[0],
-                    'gain': self.calculate_profit(portfolio=portfolio[i])[1],
-                    'profit_rate': self.calculate_profit(portfolio=portfolio[i])[2]
+                    'present_val': calculate_profit(portfolio[i])[0],
+                    'gain': calculate_profit(portfolio[i])[1],
+                    'profit_rate': calculate_profit(portfolio[i])[2]
                 }
             )
         return Response(response)
@@ -148,8 +150,14 @@ class PortfolioView(APIView):
 
 
 class PortfolioAnalysisView(APIView):
-    def post(self):
-        pass  # 내 주식 진단받기 결과
+    def post(self, request):
+        response = {
+            'status': status.HTTP_200_OK,
+            'data': {
+
+            }
+        }
+        return Response(response)
 
 
 class TestPortfolioView(APIView):
