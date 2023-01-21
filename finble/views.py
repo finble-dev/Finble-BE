@@ -187,6 +187,18 @@ class PortfolioAnalysisView(APIView):
             present_val_sum += calculate_profit(portfolio)[0]
             invested_val_sum += calculate_profit(portfolio)[1]
 
+        sector_list = Stock.objects.all().values('sector').distinct()
+        portfolio_ratio = []
+        sector_ratio = []
+        for portfolio in portfolio_objects:
+            stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+            portfolio_ratio.append(
+                {
+                    'symbol': portfolio.symbol,
+                    'ratio': calculate_profit(portfolio)[0] / present_val_sum * 100
+                }
+            )
+
         kospi_year = Kospi.objects.filter(date__gte=datetime.now()-relativedelta(years=1))
         graph_kospi = []
         graph_portfolio = []
@@ -207,14 +219,25 @@ class PortfolioAnalysisView(APIView):
                     'data': portfolio_val_sum
                 }
             )
-            
+
+        kospi_profit = (graph_kospi[-1] - graph_kospi[0]) / graph_kospi[0] * 100
+        portfolio_profit = (graph_portfolio[-1] - graph_portfolio[0]) / graph_portfolio[0] * 100
+        max_loss = max(graph_portfolio) - min(graph_portfolio)
+        max_fall = max_loss / max(graph_portfolio) * 100
+
         response = {
             'status': status.HTTP_200_OK,
             'data': {
                 'present_val_sum': present_val_sum,
                 'invested_val_sum': invested_val_sum,
+                'portfolio_ratio': portfolio_ratio,
+                'sector_ratio': sector_ratio,
                 'graph_kospi': graph_kospi,
-                'graph_portfolio': graph_portfolio
+                'graph_portfolio': graph_portfolio,
+                'kospi_profit': kospi_profit,
+                'portfolio_profit': portfolio_profit,
+                'max_fall': max_fall,
+                'max_loss': max_loss
             }
         }
         return Response(response)
