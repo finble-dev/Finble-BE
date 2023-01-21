@@ -66,4 +66,23 @@ def update_kospi_data_to_db_daily():
         close=datas[datas.index[0]]
     )
 
-    print(f'====== Day: {today} FINISH update Kospi Price table datas ======')
+    print(f'====== Day: {today} FINISH update Kospi table datas ======')
+
+
+def update_exchangerate_data_to_db_daily():
+    today = datetime.now()
+
+    try:
+        datas = fdr.DataReader('USD/KRW', today)['Close']
+    except:
+        print(f'Got An Error on Exchange Rate:{today}')
+
+    try:
+        ExchangeRate.objects.create(
+            date=datas.index[0],
+            rate=datas[datas.index[0]]
+        )
+    except:
+        print(f'Got An Error on Exchange Rate (Database):{today}')
+
+    print(f'====== Day: {today} FINISH update Exchange Rate table datas ======')
