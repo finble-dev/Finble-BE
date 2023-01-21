@@ -10,6 +10,8 @@ from rest_framework.utils import json
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import requests
 
 # Create your views here.
@@ -158,11 +160,30 @@ class PortfolioAnalysisView(APIView):
             present_val_sum += calculate_profit(portfolio)[0]
             invested_val_sum += calculate_profit(portfolio)[1]
 
+        kospi_year = Kospi.objects.filter(date__gte=datetime.now()-relativedelta(years=1))
+        graph_kospi = []
+        graph_portfolio = []
+        for kospi in kospi_year:
+            graph_kospi.append(
+                {
+                    'date': kospi.date,
+                    'data': kospi.index
+                }
+            )
+            graph_portfolio.append(
+                {
+                    'date': kospi.date,  # 계산 예정
+                    'data': kospi.index  # 계산 예정
+                }
+            )
+            
         response = {
             'status': status.HTTP_200_OK,
             'data': {
                 'present_val_sum': present_val_sum,
-                'invested_val_sum': invested_val_sum
+                'invested_val_sum': invested_val_sum,
+                'graph_kospi': graph_kospi,
+                'graph_portfolio': graph_portfolio
             }
         }
         return Response(response)
