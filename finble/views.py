@@ -10,6 +10,8 @@ from rest_framework.utils import json
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 import requests
 
 # Create your views here.
@@ -26,6 +28,33 @@ def calculate_profit(portfolio):
     profit_rate = gain / invested_val * 100  # 수익률
     return present_val, invested_val, gain, profit_rate
 
+class Backtest:
+    def get_exchange_rate(self, date):
+        return ExchangeRate.objects.filter(date__lte=date).order_by('-date')[0].rate
+
+    def get_price(self, symbol, date):
+        return Price.objects.filter(symbol=symbol, date__lte=date).order_by('-date')[0].close
+
+    def get_backtest_quantity(self, portfolio):
+        stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+        exchange_rate = 1
+        exchange_rate_past = 1
+        if stock.market == 'US':
+            exchange_rate = self.get_exchange_rate(date=datetime.now())  # 현재 환율
+            exchange_rate_past = self.get_exchange_rate(date=datetime.now()-relativedelta(years=1))  # 1년전 환율
+        present_val = self.get_price(symbol=portfolio.symbol, date=datetime.now()) * exchange_rate * portfolio.quantity  # 현재 가치
+        past_price = self.get_price(symbol=portfolio.symbol, date=datetime.now()-relativedelta(years=1)) * exchange_rate_past  # 1년 전 주가
+        backtest_quantity = present_val / past_price
+        return backtest_quantity
+
+    def get_date_val(self, portfolio, date):
+        stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+        backtest_quantity = self.get_backtest_quantity(portfolio=portfolio)
+        exchange_rate = 1
+        if stock.market == 'US':
+            exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
+        date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * backtest_quantity
+        return date_val
 
 class GoogleLoginView(APIView):
     def post(self, request):
@@ -87,19 +116,21 @@ class LogoutView(APIView):
 class PortfolioView(APIView):
 
     def get(self, request):
-        portfolio = Portfolio.objects.filter(user=request.user.id)
-        serializer = PortfolioSerializer(portfolio, many=True)
+        portfolios = Portfolio.objects.filter(user=request.user.id)
+        serializer = PortfolioSerializer(portfolios, many=True)
         response = {
             'status': status.HTTP_200_OK,
             'data': []
         }
-        for i in range(portfolio.count()):
+        for i in range(portfolios.count()):
+            stock = get_object_or_404(Stock, symbol=portfolios[i].symbol_id)
             response['data'].append(
                 {
                     'portfolio': serializer.data[i],
-                    'present_val': calculate_profit(portfolio[i])[0],
-                    'gain': calculate_profit(portfolio[i])[2],
-                    'profit_rate': calculate_profit(portfolio[i])[3]
+                    'stock_detail': StockSerializer(stock).data,
+                    'present_val': calculate_profit(portfolios[i])[0],
+                    'gain': calculate_profit(portfolios[i])[2],
+                    'profit_rate': calculate_profit(portfolios[i])[3]
                 }
             )
         return Response(response)
@@ -158,11 +189,67 @@ class PortfolioAnalysisView(APIView):
             present_val_sum += calculate_profit(portfolio)[0]
             invested_val_sum += calculate_profit(portfolio)[1]
 
+        portfolio_ratio = []
+        sector_ratio = []
+
+        for portfolio in portfolio_objects:
+            stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+            ratio = calculate_profit(portfolio)[0] / present_val_sum * 100
+            portfolio_ratio.append(
+                {
+                    'symbol': portfolio.symbol,
+                    'ratio': ratio
+                }
+            )
+            if stock.sector in (d['sector'] for d in sector_ratio):
+                sector_ratio[(d['sector'] for d in sector_ratio).index(stock.sector)]['ratio'] += ratio
+            else:
+                sector_ratio.append(
+                    {
+                        'sector': stock.sector,
+                        'ratio': ratio
+                    }
+                )
+
+        kospi_year = Kospi.objects.filter(date__gte=datetime.now()-relativedelta(years=1))
+        graph_kospi = []
+        graph_portfolio = []
+        for kospi in kospi_year:
+            graph_kospi.append(
+                {
+                    'date': kospi.date,
+                    'data': present_val_sum * kospi.index / kospi_year[0].index
+                }
+            )
+            portfolio_val_sum = 0
+            for portfolio in portfolio_objects:
+                backtest = Backtest()
+                portfolio_val_sum += backtest.get_date_val(portfolio=portfolio, date=kospi.date)
+            graph_portfolio.append(
+                {
+                    'date': kospi.date,
+                    'data': portfolio_val_sum
+                }
+            )
+
+        kospi_profit = (graph_kospi[-1]['data'] - graph_kospi[0]['data']) / graph_kospi[0]['data'] * 100
+        portfolio_profit = (graph_portfolio[-1]['data'] - graph_portfolio[0]['data']) / graph_portfolio[0]['data'] * 100
+        max_loss = max(d['data'] for d in graph_portfolio) - min(d['data'] for d in graph_portfolio)
+        max_fall = max_loss / max(d['data'] for d in graph_portfolio) * 100
+
         response = {
             'status': status.HTTP_200_OK,
             'data': {
                 'present_val_sum': present_val_sum,
-                'invested_val_sum': invested_val_sum
+                'invested_val_sum': invested_val_sum,
+                'portfolio_ratio': portfolio_ratio,
+                'sector_ratio': sector_ratio,
+                'graph_kospi': graph_kospi,
+                'graph_portfolio': graph_portfolio,
+                'kospi_profit': kospi_profit,
+                'portfolio_profit': portfolio_profit,
+                'max_fall': max_fall,
+                'max_loss': max_loss
             }
         }
         return Response(response)
@@ -170,9 +257,23 @@ class PortfolioAnalysisView(APIView):
 
 class TestPortfolioView(APIView):
     def get(self, request):
-        test_portfolio = TestPortfolio.objects.filter(user=request.user.id)
-        serializer = TestPortfolioSerializer(test_portfolio, many=True)
-        return Response(serializer.data)
+        test_portfolios = TestPortfolio.objects.filter(user=request.user.id)
+        serializer = TestPortfolioSerializer(test_portfolios, many=True)
+        response = {
+            'status': status.HTTP_200_OK,
+            'data': []
+        }
+        for i in range(test_portfolios.count()):
+            stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
+            response['data'].append(
+                {
+                    'portfolio': serializer.data[i],
+                    'stock_detail': StockSerializer(stock).data,
+                }
+            )
+        return Response(response)
+
+
 
     def post(self, request):
         data = {
