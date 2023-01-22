@@ -314,7 +314,7 @@ class TestPortfolioView(APIView):
 class StockView(APIView):
     serializer_class = StockSerializer
 
-    def get(self, request):
+    def post(self, request):
         search = request.data.get("search")
 
         if search is None:
