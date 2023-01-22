@@ -187,17 +187,27 @@ class PortfolioAnalysisView(APIView):
             present_val_sum += calculate_profit(portfolio)[0]
             invested_val_sum += calculate_profit(portfolio)[1]
 
-        sector_list = Stock.objects.all().values('sector').distinct()
         portfolio_ratio = []
         sector_ratio = []
+
         for portfolio in portfolio_objects:
             stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+            ratio = calculate_profit(portfolio)[0] / present_val_sum * 100
             portfolio_ratio.append(
                 {
                     'symbol': portfolio.symbol,
-                    'ratio': calculate_profit(portfolio)[0] / present_val_sum * 100
+                    'ratio': ratio
                 }
             )
+            if stock.sector in (d['sector'] for d in sector_ratio):
+                sector_ratio[(d['sector'] for d in sector_ratio).index(stock.sector)]['ratio'] += ratio
+            else:
+                sector_ratio.append(
+                    {
+                        'sector': stock.sector,
+                        'ratio': ratio
+                    }
+                )
 
         kospi_year = Kospi.objects.filter(date__gte=datetime.now()-relativedelta(years=1))
         graph_kospi = []
@@ -220,10 +230,10 @@ class PortfolioAnalysisView(APIView):
                 }
             )
 
-        kospi_profit = (graph_kospi[-1] - graph_kospi[0]) / graph_kospi[0] * 100
-        portfolio_profit = (graph_portfolio[-1] - graph_portfolio[0]) / graph_portfolio[0] * 100
-        max_loss = max(graph_portfolio) - min(graph_portfolio)
-        max_fall = max_loss / max(graph_portfolio) * 100
+        kospi_profit = (graph_kospi[-1]['data'] - graph_kospi[0]['data']) / graph_kospi[0]['data'] * 100
+        portfolio_profit = (graph_portfolio[-1]['data'] - graph_portfolio[0]['data']) / graph_portfolio[0]['data'] * 100
+        max_loss = max(d['data'] for d in graph_portfolio) - min(d['data'] for d in graph_portfolio)
+        max_fall = max_loss / max(d['data'] for d in graph_portfolio) * 100
 
         response = {
             'status': status.HTTP_200_OK,
