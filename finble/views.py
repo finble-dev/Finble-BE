@@ -116,19 +116,21 @@ class LogoutView(APIView):
 class PortfolioView(APIView):
 
     def get(self, request):
-        portfolio = Portfolio.objects.filter(user=request.user.id)
-        serializer = PortfolioSerializer(portfolio, many=True)
+        portfolios = Portfolio.objects.filter(user=request.user.id)
+        serializer = PortfolioSerializer(portfolios, many=True)
         response = {
             'status': status.HTTP_200_OK,
             'data': []
         }
-        for i in range(portfolio.count()):
+        for i in range(portfolios.count()):
+            stock = get_object_or_404(Stock, symbol=portfolios[i].symbol_id)
             response['data'].append(
                 {
                     'portfolio': serializer.data[i],
-                    'present_val': calculate_profit(portfolio[i])[0],
-                    'gain': calculate_profit(portfolio[i])[2],
-                    'profit_rate': calculate_profit(portfolio[i])[3]
+                    'stock_detail': StockSerializer(stock).data,
+                    'present_val': calculate_profit(portfolios[i])[0],
+                    'gain': calculate_profit(portfolios[i])[2],
+                    'profit_rate': calculate_profit(portfolios[i])[3]
                 }
             )
         return Response(response)
@@ -255,9 +257,23 @@ class PortfolioAnalysisView(APIView):
 
 class TestPortfolioView(APIView):
     def get(self, request):
-        test_portfolio = TestPortfolio.objects.filter(user=request.user.id)
-        serializer = TestPortfolioSerializer(test_portfolio, many=True)
-        return Response(serializer.data)
+        test_portfolios = TestPortfolio.objects.filter(user=request.user.id)
+        serializer = TestPortfolioSerializer(test_portfolios, many=True)
+        response = {
+            'status': status.HTTP_200_OK,
+            'data': []
+        }
+        for i in range(test_portfolios.count()):
+            stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
+            response['data'].append(
+                {
+                    'portfolio': serializer.data[i],
+                    'stock_detail': StockSerializer(stock).data,
+                }
+            )
+        return Response(response)
+
+
 
     def post(self, request):
         data = {
