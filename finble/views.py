@@ -202,7 +202,8 @@ class PortfolioAnalysisView(APIView):
                 }
             )
             if stock.sector in (d['sector'] for d in sector_ratio):
-                sector_ratio[(d['sector'] for d in sector_ratio).index(stock.sector)]['ratio'] += ratio
+                d = next(item for item in sector_ratio if item['sector'] == stock.sector)
+                d['ratio'] += ratio
             else:
                 sector_ratio.append(
                     {
