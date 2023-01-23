@@ -197,12 +197,13 @@ class PortfolioAnalysisView(APIView):
             ratio = calculate_profit(portfolio)[0] / present_val_sum * 100
             portfolio_ratio.append(
                 {
-                    'symbol': portfolio.symbol,
+                    'stock': StockSerializer(stock).data,
                     'ratio': ratio
                 }
             )
             if stock.sector in (d['sector'] for d in sector_ratio):
-                sector_ratio[(d['sector'] for d in sector_ratio).index(stock.sector)]['ratio'] += ratio
+                d = next(item for item in sector_ratio if item['sector'] == stock.sector)
+                d['ratio'] += ratio
             else:
                 sector_ratio.append(
                     {
