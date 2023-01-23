@@ -16,6 +16,7 @@ import requests
 
 # Create your views here.
 
+
 def calculate_profit(portfolio):
     stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
     exchange_rate = 1
@@ -27,6 +28,7 @@ def calculate_profit(portfolio):
     gain = present_val - invested_val  # 평가 손익
     profit_rate = gain / invested_val * 100  # 수익률
     return present_val, invested_val, gain, profit_rate
+
 
 class Backtest:
     def get_exchange_rate(self, date):
@@ -55,6 +57,7 @@ class Backtest:
             exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
         date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * backtest_quantity
         return date_val
+
 
 class GoogleLoginView(APIView):
     def post(self, request):
@@ -103,6 +106,7 @@ class GoogleLoginView(APIView):
         res.set_cookie("refresh", refresh_token, httponly=True)
         return res
 
+
 class LogoutView(APIView):
     def post(self, request):
         response = Response({
@@ -114,7 +118,6 @@ class LogoutView(APIView):
 
 
 class PortfolioView(APIView):
-
     def get(self, request):
         portfolios = Portfolio.objects.filter(user=request.user.id)
         serializer = PortfolioSerializer(portfolios, many=True)
@@ -274,8 +277,6 @@ class TestPortfolioView(APIView):
             )
         return Response(response)
 
-
-
     def post(self, request):
         data = {
             "symbol": request.data.get("symbol"),
@@ -325,3 +326,18 @@ class StockView(APIView):
         serializer = StockSerializer(stock_list, many=True)
         return Response(serializer.data)
 
+
+class ContactView(APIView):
+    def post(self, request):
+        data = {
+            "contact": request.data.get("contact"),
+            "user": request.user.id
+        }
+
+        serializer = ContactSerializer(data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
