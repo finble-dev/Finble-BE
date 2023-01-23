@@ -197,7 +197,7 @@ class PortfolioAnalysisView(APIView):
             ratio = calculate_profit(portfolio)[0] / present_val_sum * 100
             portfolio_ratio.append(
                 {
-                    'symbol': portfolio.symbol,
+                    'symbol': stock.symbol,
                     'ratio': ratio
                 }
             )
