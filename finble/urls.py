@@ -9,7 +9,7 @@ urlpatterns = [
     path('portfolio/', PortfolioView.as_view()),
     path('portfolio/analysis/', PortfolioAnalysisView.as_view()),
     path('test-portfolio/', TestPortfolioView.as_view()),
-    # path('test-portfolio/analysis/', TestPortfolioAnalysisView.as_view()), # 백테스트 코드
+    path('test-portfolio/analysis/', TestPortfolioAnalysisView.as_view()),
     path('search/', StockView.as_view()),
     path('contact/', ContactView.as_view())
 ]
