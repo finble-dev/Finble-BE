@@ -340,10 +340,15 @@ class TestPortfolioAnalysisView(APIView):
         present_val_sum = 0
         backtest = Backtest()
 
+        for test_portfolio in test_portfolio_objects:
+            if test_portfolio.ratio is None:
+                response = Response({
+                    "message": "test portfolio's ratio is None"
+                }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+                return response
+
         for portfolio in original_portfolio_objects:
             present_val_sum += calculate_profit(portfolio)[0]
-
-        print(present_val_sum)
 
         graph_original_portfolio = []
         graph_test_portfolio = []
