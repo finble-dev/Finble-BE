@@ -85,7 +85,7 @@ class GoogleLoginView(APIView):
 
         except User.DoesNotExist:
             data = {
-                "username": jsondata['name'],
+                "name": jsondata['username'],
                 "first_name": jsondata['given_name'],
                 "last_name": jsondata['family_name'],
                 "email": jsondata['email'],

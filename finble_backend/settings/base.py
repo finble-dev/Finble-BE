@@ -86,6 +86,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'finble_backend.wsgi.application'
 
+AUTH_USER_MODEL = 'finble.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

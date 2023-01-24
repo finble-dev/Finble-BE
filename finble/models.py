@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.timezone import now
 
@@ -16,6 +16,12 @@ class BaseModel(models.Model):
         self.deleted_at = now
         self.save(update_fields=['deleted_at'])
 
+class User(AbstractUser):
+    username = None
+    email = models.EmailField(unique=True)
+    name = models.CharField(max_length=30)
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = []
 
 class Stock(models.Model):
     symbol = models.CharField(primary_key=True, max_length=10)
