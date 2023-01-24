@@ -14,8 +14,6 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import requests
 
-# Create your views here.
-
 
 def calculate_profit(portfolio):
     stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
@@ -56,6 +54,18 @@ class Backtest:
         if stock.market == 'US':
             exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
         date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * backtest_quantity
+        return date_val
+
+    def get_date_val_test(self, portfolio, date, present_val_sum):
+        stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+        stock_invested_val = portfolio.ratio * present_val_sum / 100
+        past_date = datetime.now().date() - relativedelta(years=10)
+        past_price = self.get_price(stock.symbol, past_date)
+        quantity = stock_invested_val / past_price
+        exchange_rate = 1
+        if stock.market == 'US':
+            exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
+        date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * quantity
         return date_val
 
 
@@ -269,16 +279,26 @@ class TestPortfolioView(APIView):
         serializer = TestPortfolioSerializer(test_portfolios, many=True)
         response = {
             'status': status.HTTP_200_OK,
-            'data': []
+            'data_add': [],
+            'data_retain': []
         }
         for i in range(test_portfolios.count()):
-            stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
-            response['data'].append(
-                {
-                    'portfolio': serializer.data[i],
-                    'stock_detail': StockSerializer(stock).data,
-                }
-            )
+            if test_portfolios[i].is_from_portfolio:
+                stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
+                response['data_add'].append(
+                    {
+                        'portfolio': serializer.data[i],
+                        'stock_detail': StockSerializer(stock).data,
+                    }
+                )
+            else:
+                stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
+                response['data_retain'].append(
+                    {
+                        'portfolio': serializer.data[i],
+                        'stock_detail': StockSerializer(stock).data,
+                    }
+                )
         return Response(response)
 
     def post(self, request):
@@ -313,8 +333,68 @@ class TestPortfolioView(APIView):
         return Response({"delete success"}, status=204)
 
 
-# class TestPortfolioAnalysisView(APIView):
-# 백테스트 코드
+class TestPortfolioAnalysisView(APIView):
+    def get(self, request):
+        test_portfolio_objects = TestPortfolio.objects.filter(user=request.user.id)
+        original_portfolio_objects = Portfolio.objects.filter(user=request.user.id)
+        present_val_sum = 0
+        backtest = Backtest()
+
+        for portfolio in original_portfolio_objects:
+            present_val_sum += calculate_profit(portfolio)[0]
+
+        print(present_val_sum)
+
+        graph_original_portfolio = []
+        graph_test_portfolio = []
+
+        for example in Price.objects.filter(symbol=test_portfolio_objects[0].symbol, date__gte=datetime.now().date()-relativedelta(years=10)):
+            original_portfolio_val_sum = 0
+            test_portfolio_val_sum = 0
+
+            for original_portfolio in original_portfolio_objects:
+                original_portfolio_val_sum += backtest.get_date_val(portfolio=original_portfolio, date=example.date)
+
+            graph_original_portfolio.append(
+                {
+                    'date': example.date,
+                    'data': original_portfolio_val_sum
+                }
+            )
+
+            for test_portfolio in test_portfolio_objects:
+                test_portfolio_val_sum += backtest.get_date_val_test(portfolio=test_portfolio, date=example.date, present_val_sum=float(present_val_sum))
+
+            graph_test_portfolio.append(
+                {
+                    'date': example.date,
+                    'data': test_portfolio_val_sum
+                }
+            )
+
+        original_portfolio_profit = (graph_original_portfolio[-1]['data'] - graph_original_portfolio[0]['data']) / graph_original_portfolio[0]['data'] * 100
+        original_portfolio_max_loss = max(d['data'] for d in graph_original_portfolio) - min(d['data'] for d in graph_original_portfolio)
+        original_portfolio_max_fall = original_portfolio_max_loss / max(d['data'] for d in graph_original_portfolio) * 100
+
+        test_portfolio_profit = (graph_test_portfolio[-1]['data'] - graph_test_portfolio[0]['data']) / graph_test_portfolio[0]['data'] * 100
+        test_portfolio_max_loss = max(d['data'] for d in graph_test_portfolio) - min(d['data'] for d in graph_test_portfolio)
+        test_portfolio_max_fall = test_portfolio_max_loss / max(d['data'] for d in graph_test_portfolio) * 100
+
+        response = {
+            'status': status.HTTP_200_OK,
+            'data': {
+                'present_val_sum': present_val_sum,
+                'graph_original_portfolio': graph_original_portfolio,
+                'graph_test_portfolio': graph_test_portfolio,
+                'original_portfolio_profit': original_portfolio_profit,
+                'original_portfolio_max_fall': original_portfolio_max_fall,
+                'original_portfolio_max_loss': original_portfolio_max_loss,
+                'test_portfolio_profit': test_portfolio_profit,
+                'test_portfolio_max_fall': test_portfolio_max_fall,
+                'test_portfolio_max_loss': test_portfolio_max_loss
+            }
+        }
+        return Response(response)
 
 
 class StockView(APIView):
