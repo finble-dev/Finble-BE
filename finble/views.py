@@ -237,9 +237,11 @@ class PortfolioAnalysisView(APIView):
             )
 
         kospi_profit = (graph_kospi[-1]['data'] - graph_kospi[0]['data']) / graph_kospi[0]['data'] * 100
+        kospi_max_loss = max(d['data'] for d in graph_kospi) - min(d['data'] for d in graph_kospi)
+        kospi_max_fall = kospi_max_loss / max(d['data'] for d in graph_kospi) * 100
         portfolio_profit = (graph_portfolio[-1]['data'] - graph_portfolio[0]['data']) / graph_portfolio[0]['data'] * 100
-        max_loss = max(d['data'] for d in graph_portfolio) - min(d['data'] for d in graph_portfolio)
-        max_fall = max_loss / max(d['data'] for d in graph_portfolio) * 100
+        portfolio_max_loss = max(d['data'] for d in graph_portfolio) - min(d['data'] for d in graph_portfolio)
+        portfolio_max_fall = portfolio_max_loss / max(d['data'] for d in graph_portfolio) * 100
 
         response = {
             'status': status.HTTP_200_OK,
@@ -251,9 +253,11 @@ class PortfolioAnalysisView(APIView):
                 'graph_kospi': graph_kospi,
                 'graph_portfolio': graph_portfolio,
                 'kospi_profit': kospi_profit,
+                'kospi_max_fall': kospi_max_fall,
+                'kospi_max_loss': kospi_max_loss,
                 'portfolio_profit': portfolio_profit,
-                'max_fall': max_fall,
-                'max_loss': max_loss
+                'portfolio_max_fall': portfolio_max_fall,
+                'portfolio_max_loss': portfolio_max_loss
             }
         }
         return Response(response)
