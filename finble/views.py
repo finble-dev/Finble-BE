@@ -14,8 +14,6 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import requests
 
-# Create your views here.
-
 
 def calculate_profit(portfolio):
     stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
@@ -269,16 +267,26 @@ class TestPortfolioView(APIView):
         serializer = TestPortfolioSerializer(test_portfolios, many=True)
         response = {
             'status': status.HTTP_200_OK,
-            'data': []
+            'data_add': [],
+            'data_retain': []
         }
         for i in range(test_portfolios.count()):
-            stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
-            response['data'].append(
-                {
-                    'portfolio': serializer.data[i],
-                    'stock_detail': StockSerializer(stock).data,
-                }
-            )
+            if test_portfolios[i].is_from_portfolio:
+                stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
+                response['data_add'].append(
+                    {
+                        'portfolio': serializer.data[i],
+                        'stock_detail': StockSerializer(stock).data,
+                    }
+                )
+            else:
+                stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
+                response['data_retain'].append(
+                    {
+                        'portfolio': serializer.data[i],
+                        'stock_detail': StockSerializer(stock).data,
+                    }
+                )
         return Response(response)
 
     def post(self, request):
@@ -314,7 +322,6 @@ class TestPortfolioView(APIView):
 
 
 # class TestPortfolioAnalysisView(APIView):
-# 백테스트 코드
 
 
 class StockView(APIView):
