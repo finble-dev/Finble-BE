@@ -2,7 +2,6 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.hashers import make_password
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
@@ -85,7 +84,7 @@ class GoogleLoginView(APIView):
 
         except User.DoesNotExist:
             data = {
-                "name": jsondata['username'],
+                "name": jsondata['name'],
                 "first_name": jsondata['given_name'],
                 "last_name": jsondata['family_name'],
                 "email": jsondata['email'],
