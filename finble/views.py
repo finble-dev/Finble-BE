@@ -9,7 +9,7 @@ from rest_framework.utils import json
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
-from datetime import datetime
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from multiprocessing import Pool
 import requests
@@ -30,7 +30,10 @@ def calculate_profit(portfolio):
 
 class Backtest:
     def get_exchange_rate(self, date):
-        return ExchangeRate.objects.filter(date__lte=date).order_by('-date')[0].rate
+        rate = ExchangeRate.objects.filter(date__lte=date).order_by('-date')[0].rate
+        if rate is None:
+            self.get_exchange_rate(date=date+timedelta(days=1))
+        return rate
 
     def get_price(self, symbol, date):
         return Price.objects.filter(symbol=symbol, date__lte=date).order_by('-date')[0].close
