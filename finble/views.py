@@ -30,10 +30,7 @@ def calculate_profit(portfolio):
 
 class Backtest:
     def get_exchange_rate(self, date):
-        rate = ExchangeRate.objects.filter(date__lte=date).order_by('-date')[0].rate
-        if rate is None:
-            self.get_exchange_rate(date=date+timedelta(days=1))
-        return rate
+        return ExchangeRate.objects.filter(date__lte=date).exclude(rate=None).order_by('-date')[0].rate
 
     def get_price(self, symbol, date):
         return Price.objects.filter(symbol=symbol, date__lte=date).order_by('-date')[0].close
