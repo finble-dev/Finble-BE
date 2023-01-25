@@ -12,6 +12,7 @@ from .serializers import *
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from multiprocessing import Pool
+from operator import itemgetter
 import requests
 
 
@@ -26,6 +27,17 @@ def calculate_profit(portfolio):
     gain = present_val - invested_val  # 평가 손익
     profit_rate = gain / invested_val * 100  # 수익률
     return present_val, invested_val, gain, profit_rate
+
+
+def sort_ratio(category, ratio_list):
+    sorted_list = sorted(ratio_list, key=itemgetter('ratio'), reverse=True)
+    if len(sorted_list) > 8:
+        sorted_list[7][category] = "기타"
+        for i in range(8, len(sorted_list)):
+            sorted_list[7]['ratio'] += sorted_list[i]['ratio']
+        return sorted_list[0:8]
+    else:
+        return sorted_list
 
 
 class Backtest:
@@ -244,6 +256,9 @@ class PortfolioAnalysisView(APIView):
                         'ratio': ratio
                     }
                 )
+
+        portfolio_ratio = sort_ratio("stock", portfolio_ratio)
+        sector_ratio = sort_ratio("sector", sector_ratio)
 
         kospi_year = Kospi.objects.filter(date__gte=datetime.now()-relativedelta(years=1))
         graph_kospi = []
