@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from multiprocessing import Pool
 import requests
 
 
@@ -66,6 +67,37 @@ class Backtest:
             exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
         date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * quantity
         return date_val
+
+
+    def get_graph_val(self, request, period):
+
+        portfolio_objects = Portfolio.objects.filter(user=request.user.id)
+        present_val_sum = 0
+        for portfolio in portfolio_objects:
+            present_val_sum += calculate_profit(portfolio)[0]
+
+        kospi_period = Kospi.objects.filter(date__gte=datetime.now() - relativedelta(years=period))
+        graph_kospi = []
+        graph_portfolio = []
+
+        for kospi in kospi_period:
+            graph_kospi.append(
+                {
+                    'date': kospi.date,
+                    'data': present_val_sum * kospi.index / kospi_period[0].index
+                }
+            )
+            portfolio_val_sum = 0
+            for portfolio in portfolio_objects:
+                portfolio_val_sum += self.get_date_val(portfolio=portfolio, date=kospi.date)
+            graph_portfolio.append(
+                {
+                    'date': kospi.date,
+                    'data': portfolio_val_sum
+                }
+            )
+
+        return graph_kospi, graph_portfolio
 
 
 class GoogleLoginView(APIView):
@@ -227,6 +259,7 @@ class PortfolioAnalysisView(APIView):
         kospi_year = Kospi.objects.filter(date__gte=datetime.now()-relativedelta(years=1))
         graph_kospi = []
         graph_portfolio = []
+
         for kospi in kospi_year:
             graph_kospi.append(
                 {
@@ -284,7 +317,7 @@ class TestPortfolioView(APIView):
         for i in range(test_portfolios.count()):
             if test_portfolios[i].is_from_portfolio:
                 stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
-                response['data_add'].append(
+                response['data_retain'].append(
                     {
                         'portfolio': serializer.data[i],
                         'stock_detail': StockSerializer(stock).data,
@@ -292,7 +325,7 @@ class TestPortfolioView(APIView):
                 )
             else:
                 stock = get_object_or_404(Stock, symbol=test_portfolios[i].symbol_id)
-                response['data_retain'].append(
+                response['data_add'].append(
                     {
                         'portfolio': serializer.data[i],
                         'stock_detail': StockSerializer(stock).data,

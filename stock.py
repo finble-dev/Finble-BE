@@ -85,7 +85,7 @@ def get_exchangerate_data():
 
 
 # get_price_data()
-# get_kospi_data()
-# get_exchangerate_data()
+get_kospi_data()
+get_exchangerate_data()
 
-asyncio.run(update_price_data_to_db())
+#asyncio.run(update_price_data_to_db())
