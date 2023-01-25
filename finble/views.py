@@ -52,7 +52,7 @@ class Backtest:
         backtest_quantity = self.get_backtest_quantity(portfolio=portfolio)
         exchange_rate = 1
         if stock.market == 'US':
-            exchange_rate = self.get_exchange_rate(date__gte=date)  # 당시 환율
+            exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
         date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * backtest_quantity
         return date_val
 
