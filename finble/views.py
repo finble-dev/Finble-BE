@@ -148,33 +148,54 @@ class PortfolioView(APIView):
         return Response(response)
 
     def post(self, request):
-        data1 = {
-            "symbol": request.data.get("symbol"),
-            "user": request.user.id,
-            "average_price": request.data.get("average_price"),
-            "quantity": request.data.get("quantity")
-        }
-        data2 = {
-            "symbol": request.data.get("symbol"),
-            "user": request.user.id,
-            "is_from_portfolio": True
-        }
-        serializer1 = PortfolioSerializer(data=data1)
-        serializer2 = TestPortfolioSerializer(data=data2)
-        if serializer1.is_valid():
-            if serializer2.is_valid():
-                serializer1.save()
-                serializer2.save()
-                response = {
-                    'status': status.HTTP_200_OK,
-                    'data': {
-                        'portfolio': serializer1.data,
-                        'test_portfolio': serializer2.data
+
+        portfolio = Portfolio.objects.filter(user=request.user.id, symbol=request.data.get("symbol")).first()
+
+        if portfolio is None:
+            data1 = {
+                "symbol": request.data.get("symbol"),
+                "user": request.user.id,
+                "average_price": request.data.get("average_price"),
+                "quantity": request.data.get("quantity")
+            }
+            data2 = {
+                "symbol": request.data.get("symbol"),
+                "user": request.user.id,
+                "is_from_portfolio": True
+            }
+            serializer1 = PortfolioSerializer(data=data1)
+            serializer2 = TestPortfolioSerializer(data=data2)
+            if serializer1.is_valid():
+                if serializer2.is_valid():
+                    serializer1.save()
+                    serializer2.save()
+                    response = {
+                        'status': status.HTTP_200_OK,
+                        'data': {
+                            'portfolio': serializer1.data,
+                            'test_portfolio': serializer2.data
+                        }
                     }
-                }
-                return Response(response)
-            return Response(serializer2.errors, status=400)
-        return Response(serializer1.errors, status=400)
+                    return Response(response)
+                return Response(serializer2.errors, status=400)
+            return Response(serializer1.errors, status=400)
+
+        else:
+            new_quantity = portfolio.quantity + request.data.get("quantity")
+            new_average_price = (portfolio.average_price * portfolio.quantity + request.data.get(
+                "average_price") * request.data.get("quantity")) / new_quantity
+            data = {
+                "symbol": request.data.get("symbol"),
+                "user": request.user.id,
+                "average_price": new_average_price,
+                "quantity": new_quantity
+            }
+            serializer = PortfolioSerializer(instance=portfolio, data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=200)
+            else:
+                return Response(serializer.errors, status=400)
 
     # def patch(self, request):
     #     portfolio_instance = get_object_or_404(Portfolio, id=request.data['id'])
