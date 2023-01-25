@@ -66,8 +66,8 @@ def get_kospi_data():
 def get_exchangerate_data():
     now = datetime.now()
     before = now - relativedelta(years=10)
-    # datas = fdr.DataReader('USD/KRW', before, now)['Close']
-    datas = fdr.DataReader('USD/KRW', '2022')['Close']
+    datas = fdr.DataReader('USD/KRW', before, now)['Close']
+    # datas = fdr.DataReader('USD/KRW', '2022')['Close']
     datas = datas.replace({np.nan: None})
     date = datas.index
 
@@ -85,7 +85,7 @@ def get_exchangerate_data():
 
 
 # get_price_data()
-get_kospi_data()
+# get_kospi_data()
 get_exchangerate_data()
 
 #asyncio.run(update_price_data_to_db())
