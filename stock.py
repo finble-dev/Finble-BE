@@ -37,13 +37,13 @@ def get_price_data(num):
 
         print(f'Symbol:{stock.symbol:8} Market:{stock.market:6} Name:{stock.name:8} Count:{len(datas):4}')
 
-    print(f'======FINISH update Price table: running time {datetime.now() - now} secs======')
+    print(f'======FINISH update {start}s Price table: running time {datetime.now() - now} secs======')
 
 
 async def update_price_data_to_db():
     today = datetime.now().year
 
-    coroutines = [get_price_data(i) for i in range(11, 0, -1)]
+    coroutines = [get_price_data(i) for i in range(11, -1, -1)]
     await asyncio.gather(*coroutines)
 
 
@@ -84,8 +84,30 @@ def get_exchangerate_data():
     print(f'FINISH update Exchange Rate table: running time {datetime.now() - now} secs & {len(datas)} datas')
 
 
+def update_specific_data():
+    stock_list = Stock.objects.filter(market='US')
+    now = datetime.now()
+
+    for stock in stock_list:
+        datas = fdr.DataReader(stock.symbol, '2023-01-25')['Close']
+        date = datas.index
+
+        for i in date:
+            Price.objects.create(
+                symbol=Stock.objects.get(symbol=stock.symbol),
+                date=i.date(),
+                close=datas[i]
+            )
+
+        print(f'Symbol:{stock.symbol:8} Market:{stock.market:6} Name:{stock.name:8} Count:{len(datas):4}')
+
+    print(f'FINISH update Price table: running time {datetime.now() - now} secs')
+
+
 # get_price_data()
 # get_kospi_data()
-get_exchangerate_data()
+# get_exchangerate_data()
 
-#asyncio.run(update_price_data_to_db())
+asyncio.run(update_price_data_to_db())
+
+# update_specific_data()
