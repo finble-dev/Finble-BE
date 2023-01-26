@@ -11,10 +11,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import *
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
-from multiprocessing import Pool
+import multiprocessing
 from operator import itemgetter
 import requests
-
 
 def calculate_profit(portfolio):
     stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
@@ -41,6 +40,7 @@ def sort_ratio(category, ratio_list):
 
 
 class Backtest:
+
     def get_exchange_rate(self, date):
         return ExchangeRate.objects.filter(date__lte=date).exclude(rate=None).order_by('-date')[0].rate
 
@@ -295,10 +295,22 @@ class PortfolioAnalysisView(APIView):
                     'data': present_val_sum * kospi.index / kospi_year[0].index
                 }
             )
-            portfolio_val_sum = 0
+
+            input_list = []
             for portfolio in portfolio_objects:
-                backtest = Backtest()
-                portfolio_val_sum += backtest.get_date_val(portfolio=portfolio, date=kospi.date)
+                input_list.append([portfolio, kospi.date])
+
+            portfolio_val_sum = 0
+            backtest = Backtest()
+
+            pool = multiprocessing.Pool(processes=portfolio_objects.count())
+            output_list = pool.starmap(backtest.get_date_val, input_list)
+            pool.close()
+            pool.join()
+
+            for output in output_list:
+                portfolio_val_sum += output
+
             graph_portfolio.append(
                 {
                     'date': kospi.date,
