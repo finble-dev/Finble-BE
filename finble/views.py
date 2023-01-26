@@ -258,7 +258,7 @@ class PortfolioAnalysisView(APIView):
                 )
 
         portfolio_ratio = sort_ratio("stock", portfolio_ratio)
-        sector_ratio = sort_ratio("sector", sector_ratio)
+        sector_ratio = sorted(sector_ratio, key=itemgetter('ratio'), reverse=True)
 
         kospi_year = Kospi.objects.filter(date__gte=datetime.now()-relativedelta(years=1))
         graph_kospi = []
