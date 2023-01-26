@@ -80,6 +80,30 @@ class Backtest:
         date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * quantity
         return date_val
 
+    def calculate_annual_average_profit(self, graph):
+        profit_result = []
+        first_data = graph[0]['data']
+        first_date = graph[0]['date']
+
+        for i in range(9, -1, -1):
+            d = next(item for item in graph if item['date'] >= graph[-1]['date'] - relativedelta(years=i))
+            last_data = d['data']
+
+            profit_result.append(
+                {
+                    'first_date': first_date,
+                    'last_date': d['date'],
+                    'profit': (last_data - first_data) / first_data * 100
+                }
+            )
+
+            if i != 0:
+                first_data = graph[graph.index(d) + 1]['data']
+                first_date = graph[graph.index(d) + 1]['date']
+
+        return profit_result
+
+
 class GoogleLoginView(APIView):
     def post(self, request):
         payload = {'access_token': request.data.get('token')}  # validate the token
@@ -413,6 +437,9 @@ class TestPortfolioAnalysisView(APIView):
                 }
             )
 
+        annual_profit_original = backtest.calculate_annual_average_profit(graph_original_portfolio)
+        annual_profit_test = backtest.calculate_annual_average_profit(graph_test_portfolio)
+
         original_portfolio_profit = (graph_original_portfolio[-1]['data'] - graph_original_portfolio[0]['data']) / graph_original_portfolio[0]['data'] * 100
         original_portfolio_max_loss = max(d['data'] for d in graph_original_portfolio) - min(d['data'] for d in graph_original_portfolio)
         original_portfolio_max_fall = original_portfolio_max_loss / max(d['data'] for d in graph_original_portfolio) * 100
@@ -425,6 +452,8 @@ class TestPortfolioAnalysisView(APIView):
             'status': status.HTTP_200_OK,
             'data': {
                 'present_val_sum': present_val_sum,
+                'annual_profit_original': annual_profit_original,
+                'annual_profit_test': annual_profit_original,
                 'graph_original_portfolio': graph_original_portfolio,
                 'graph_test_portfolio': graph_test_portfolio,
                 'original_portfolio_profit': original_portfolio_profit,
