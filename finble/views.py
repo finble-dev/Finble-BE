@@ -290,23 +290,25 @@ class PortfolioAnalysisView(APIView):
         sector_ratio = sorted(sector_ratio, key=itemgetter('ratio'), reverse=True)
 
         kospi_year = Kospi.objects.filter(date__gte=datetime.now()-relativedelta(years=1))
+        kospi_year_ago = kospi_year[0].index
         graph_kospi = []
         graph_portfolio = []
         backtest = Backtest()
 
         for kospi in kospi_year:
+            date = kospi.date
             graph_kospi.append(
                 {
-                    'date': kospi.date,
-                    'data': present_val_sum * kospi.index / kospi_year[0].index
+                    'date': date,
+                    'data': present_val_sum * kospi.index / kospi_year_ago
                 }
             )
             portfolio_val_sum = 0
             for portfolio in portfolio_objects:
-                portfolio_val_sum += backtest.get_date_val(portfolio=portfolio, date=kospi.date)
+                portfolio_val_sum += backtest.get_date_val(portfolio=portfolio, date=date)
             graph_portfolio.append(
                 {
-                    'date': kospi.date,
+                    'date': date,
                     'data': portfolio_val_sum
                 }
             )
