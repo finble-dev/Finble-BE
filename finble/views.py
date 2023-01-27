@@ -443,8 +443,8 @@ class TestPortfolioAnalysisView(APIView):
                 }
             )
 
-        annual_profit_original = backtest.calculate_annual_average_profit(graph_original_portfolio)
-        annual_profit_test = backtest.calculate_annual_average_profit(graph_test_portfolio)
+        annual_profit_original = ((graph_original_portfolio[-1]['data']/graph_original_portfolio[0]['data']) ** 0.1 - 1) * 100
+        annual_profit_test = ((graph_test_portfolio[-1]['data']/graph_test_portfolio[0]['data']) ** 0.1 - 1) * 100
 
         original_portfolio_profit = (graph_original_portfolio[-1]['data'] - graph_original_portfolio[0]['data']) / graph_original_portfolio[0]['data'] * 100
         original_portfolio_max_loss = max(d['data'] for d in graph_original_portfolio) - min(d['data'] for d in graph_original_portfolio)
