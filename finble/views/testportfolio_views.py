@@ -98,7 +98,12 @@ class TestPortfolioAnalysisView(APIView):
         rebalance_month = 19
         rebalance_quantity = backtest.calculate_quantity(test_portfolio_objects, datetime.now().date()-relativedelta(years=10), present_val_sum)
 
-        for example in Price.objects.filter(symbol='AAPL', date__gte=datetime.now().date()-relativedelta(years=10)):
+        example_list = Price.objects.filter(symbol='AAPL', date__gte=datetime.now().date()-relativedelta(years=10))
+        temp = example_list[0].date.month
+        for example in example_list:
+            if example.date.month == temp:
+                continue
+            temp = example.date.month
             original_portfolio_val_sum = 0
             test_portfolio_val_sum = 0
 
