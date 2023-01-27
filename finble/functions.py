@@ -80,10 +80,10 @@ class Backtest:
 
     def calculate_quantity(self, test_portfolio, date, val_sum):
         quantity_list = {}
-        exchange_rate = 1
         ratio_list = self.calculate_ratio(test_portfolio, date)
 
         for portfolio in test_portfolio:
+            exchange_rate = 1
             stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
             if stock.market == 'US':
                 exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
@@ -102,6 +102,7 @@ class Backtest:
                 calculate_ratio[portfolio.symbol_id] = 0
             else:
                 calculate_ratio[portfolio.symbol_id] = ratio_list[portfolio.symbol_id]
+                total += ratio_list[portfolio.symbol_id]
 
         if total != 0:
             calculate_ratio = {key: (value / total) for key, value in calculate_ratio.items()}
