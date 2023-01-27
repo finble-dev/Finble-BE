@@ -86,20 +86,34 @@ class Backtest:
         date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * rebalance_quantity[portfolio.symbol_id]
         return date_val
 
+    def calculate_ratio(self, portfolio_objects, date):
+        ratio_list = {'total': 0}
+
+        for portfolio in portfolio_objects:
+            if self.get_price(portfolio.symbol_id, date) == -1:
+                ratio_list[portfolio.symbol_id] = 0
+            else:
+                ratio_list[portfolio.symbol_id] = portfolio.ratio
+                ratio_list['total'] += portfolio.ratio
+
+        if ratio_list['total'] == 0:
+            return ratio_list
+        else:
+            ratio_list = {key: (value/ratio_list['total']) for key, value in ratio_list.items() if key != 'total'}
+        print(ratio_list)
+        return ratio_list
+
     def calculate_quantity(self, test_portfolio, date, val_sum):
         quantity_list = {}
         exchange_rate = 1
+        ratio_list = self.calculate_ratio(test_portfolio, date)
+
         for portfolio in test_portfolio:
             stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
             if stock.market == 'US':
                 exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
+            quantity_list[portfolio.symbol_id] = (val_sum * ratio_list[portfolio.symbol_id]) / (self.get_price(portfolio.symbol_id, date) * exchange_rate)
 
-            if self.get_price(portfolio.symbol_id, date) == -1:
-                quantity_list[portfolio.symbol_id] = 0
-                # TODO: 비상장 주식 처리
-            else:
-                quantity_list[portfolio.symbol_id] = (val_sum * portfolio.ratio / 100) / (self.get_price(portfolio.symbol_id, date) * exchange_rate)
-                # print(date, portfolio.symbol_id, val_sum, exchange_rate)
         return quantity_list
 
     def calculate_annual_average_profit(self, graph):
@@ -427,6 +441,7 @@ class TestPortfolioAnalysisView(APIView):
         original_portfolio_objects = Portfolio.objects.filter(user=request.user.id)
         invest_val_sum = 0
         present_val_sum = 0
+        original_quantity = {}
         backtest = Backtest()
 
         for test_portfolio in test_portfolio_objects:
@@ -439,15 +454,19 @@ class TestPortfolioAnalysisView(APIView):
         for portfolio in original_portfolio_objects:
             invest_val_sum += calculate_profit(portfolio)[1]
             present_val_sum += calculate_profit(portfolio)[0]
+            past_price = backtest.get_price(portfolio.symbol_id, datetime.now().date()-relativedelta(years=10))
+            if past_price == -1:
+                original_quantity[portfolio.symbol_id] = 0
+            else:
+                original_quantity[portfolio.symbol_id] = calculate_profit(portfolio)[0]
 
         graph_original_portfolio = []
         graph_test_portfolio = []
 
         rebalance_month = 19
         rebalance_quantity = backtest.calculate_quantity(test_portfolio_objects, datetime.now().date()-relativedelta(years=10), present_val_sum)
-        original_quantity = {portfolio.symbol_id: (present_val_sum/backtest.get_price(portfolio.symbol_id, datetime.now().date()-relativedelta(years=10))) for portfolio in original_portfolio_objects}
 
-        for example in Price.objects.filter(symbol=test_portfolio_objects[0].symbol, date__gte=datetime.now().date()-relativedelta(years=10)):
+        for example in Price.objects.filter(symbol='AAPL', date__gte=datetime.now().date()-relativedelta(years=10)):
             original_portfolio_val_sum = 0
             test_portfolio_val_sum = 0
 
