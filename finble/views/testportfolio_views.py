@@ -73,7 +73,8 @@ class TestPortfolioAnalysisView(APIView):
         original_portfolio_objects = Portfolio.objects.filter(user=request.user.id)
         invest_val_sum = 0
         present_val_sum = 0
-        original_quantity = {}
+        not_listed_stocks = []
+        original_ratio = {}
         backtest = Backtest()
 
         for test_portfolio in test_portfolio_objects:
@@ -86,12 +87,13 @@ class TestPortfolioAnalysisView(APIView):
         for portfolio in original_portfolio_objects:
             invest_val_sum += calculate_profit(portfolio)[1]
             present_val_sum += calculate_profit(portfolio)[0]
+            original_ratio[portfolio.symbol_id] = calculate_profit(portfolio)[0]
             past_price = backtest.get_price(portfolio.symbol_id, datetime.now().date()-relativedelta(years=10))
             if past_price == -1:
-                original_quantity[portfolio.symbol_id] = 0
-            else:
-                original_quantity[portfolio.symbol_id] = calculate_profit(portfolio)[0]
+                not_listed_stocks.append(Price.objects.filter(symbol=portfolio.symbol_id)[0].date)
 
+        original_ratio = {key: (value / present_val_sum) for key, value in original_ratio.items()}
+        original_quantity = backtest.calculate_quantity_original(original_portfolio_objects, original_ratio, present_val_sum, datetime.now().date()-relativedelta(years=10))
         graph_original_portfolio = []
         graph_test_portfolio = []
 
@@ -105,28 +107,38 @@ class TestPortfolioAnalysisView(APIView):
             for original_portfolio in original_portfolio_objects:
                 original_portfolio_val_sum += original_quantity[original_portfolio.symbol_id] * backtest.get_price(original_portfolio.symbol_id, example.date)
 
-            graph_original_portfolio.append(
-                {
-                    'date': example.date,
-                    'data': original_portfolio_val_sum
-                }
-            )
+            if original_portfolio_val_sum > 0:
+                graph_original_portfolio.append(
+                    {
+                        'date': example.date,
+                        'data': original_portfolio_val_sum
+                    }
+                )
 
             for test_portfolio in test_portfolio_objects:
                 test_portfolio_val_sum += backtest.get_date_val_test(portfolio=test_portfolio, date=example.date, rebalance_quantity=rebalance_quantity)
 
-            graph_test_portfolio.append(
-                {
-                    'date': example.date,
-                    'data': test_portfolio_val_sum
-                }
-            )
+            if test_portfolio_val_sum > 0:
+                graph_test_portfolio.append(
+                    {
+                        'date': example.date,
+                        'data': test_portfolio_val_sum
+                    }
+                )
+
+            for listed_day in not_listed_stocks:
+                if example.date >= listed_day:
+                    del not_listed_stocks[not_listed_stocks.index(listed_day)]
+                    if original_portfolio_val_sum > 0:
+                        original_quantity = backtest.calculate_quantity_original(original_portfolio_objects, original_ratio, original_portfolio_val_sum, example.date + relativedelta(days=5))
+                    else:
+                        original_quantity = backtest.calculate_quantity_original(original_portfolio_objects, original_ratio, present_val_sum, example.date + relativedelta(days=5))
 
             # rebalancing
             if example.date >= datetime.now().date()-relativedelta(months=rebalance_month*6):
                 rebalance_month -= 1
                 rebalance_quantity = backtest.calculate_quantity(test_portfolio_objects, example.date, test_portfolio_val_sum)
-                print(example.date, test_portfolio_val_sum, rebalance_quantity)
+                # print(example.date, test_portfolio_val_sum, rebalance_quantity)
 
         annual_profit_original = ((graph_original_portfolio[-1]['data']/graph_original_portfolio[0]['data']) ** 0.1 - 1) * 100
         annual_profit_test = ((graph_test_portfolio[-1]['data']/graph_test_portfolio[0]['data']) ** 0.1 - 1) * 100

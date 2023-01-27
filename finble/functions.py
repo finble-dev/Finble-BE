@@ -75,7 +75,7 @@ class Backtest:
             return ratio_list
         else:
             ratio_list = {key: (value/ratio_list['total']) for key, value in ratio_list.items() if key != 'total'}
-        print(ratio_list)
+        # print(ratio_list)
         return ratio_list
 
     def calculate_quantity(self, test_portfolio, date, val_sum):
@@ -88,6 +88,25 @@ class Backtest:
             if stock.market == 'US':
                 exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
             quantity_list[portfolio.symbol_id] = (val_sum * ratio_list[portfolio.symbol_id]) / (self.get_price(portfolio.symbol_id, date) * exchange_rate)
+
+        return quantity_list
+
+    def calculate_quantity_original(self, portfolio_objects, ratio_list, present_val_sum, date):
+        zero_quantity_list = {}
+        total = 0
+        calculate_ratio = {}
+
+        for portfolio in portfolio_objects:
+            if self.get_price(portfolio.symbol_id, date) == -1:
+                zero_quantity_list[portfolio.symbol_id] = 0
+                calculate_ratio[portfolio.symbol_id] = 0
+            else:
+                calculate_ratio[portfolio.symbol_id] = ratio_list[portfolio.symbol_id]
+
+        if total != 0:
+            calculate_ratio = {key: (value / total) for key, value in calculate_ratio.items()}
+        quantity_list = {key: (value * present_val_sum / self.get_price(key, date)) for key, value in calculate_ratio.items()}
+        quantity_list.update(zero_quantity_list)
 
         return quantity_list
 
