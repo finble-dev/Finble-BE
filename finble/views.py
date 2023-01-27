@@ -155,6 +155,7 @@ class GoogleLoginView(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         token = TokenObtainPairSerializer.get_token(user)
+        token_creation_time = datetime.now()
         refresh_token = str(token)
         access_token = str(token.access_token)
 
@@ -165,6 +166,7 @@ class GoogleLoginView(APIView):
                 "token": {
                     "access": access_token,
                     "refresh": refresh_token,
+                    "expiration_time": token_creation_time + timedelta(minutes=30)
                 },
             },
             status=status.HTTP_200_OK,
