@@ -312,7 +312,11 @@ class PortfolioAnalysisView(APIView):
         graph_portfolio = []
         backtest = Backtest()
 
+        i = 0
         for kospi in kospi_year:
+            i += 1
+            if i % 6 != 1:
+                continue
             graph_kospi.append(
                 {
                     'date': kospi.date,
