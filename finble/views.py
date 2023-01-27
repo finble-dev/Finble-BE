@@ -421,6 +421,7 @@ class TestPortfolioAnalysisView(APIView):
         test_portfolio_objects = TestPortfolio.objects.filter(user=request.user.id)
         original_portfolio_objects = Portfolio.objects.filter(user=request.user.id)
         invest_val_sum = 0
+        present_val_sum = 0
         backtest = Backtest()
 
         for test_portfolio in test_portfolio_objects:
@@ -432,19 +433,21 @@ class TestPortfolioAnalysisView(APIView):
 
         for portfolio in original_portfolio_objects:
             invest_val_sum += calculate_profit(portfolio)[1]
+            present_val_sum += calculate_profit(portfolio)[0]
 
         graph_original_portfolio = []
         graph_test_portfolio = []
 
         rebalance_month = 19
-        rebalance_quantity = backtest.calculate_quantity(test_portfolio_objects, datetime.now().date()-relativedelta(years=10), invest_val_sum)
+        rebalance_quantity = backtest.calculate_quantity(test_portfolio_objects, datetime.now().date()-relativedelta(years=10), present_val_sum)
+        original_quantity = {portfolio.symbol_id: (present_val_sum/backtest.get_price(portfolio.symbol_id, datetime.now().date()-relativedelta(years=10))) for portfolio in original_portfolio_objects}
 
         for example in Price.objects.filter(symbol=test_portfolio_objects[0].symbol, date__gte=datetime.now().date()-relativedelta(years=10)):
             original_portfolio_val_sum = 0
             test_portfolio_val_sum = 0
 
             for original_portfolio in original_portfolio_objects:
-                original_portfolio_val_sum += backtest.get_date_val(portfolio=original_portfolio, date=example.date)
+                original_portfolio_val_sum += original_quantity[original_portfolio.symbol_id] * backtest.get_price(original_portfolio.symbol_id, example.date)
 
             graph_original_portfolio.append(
                 {
