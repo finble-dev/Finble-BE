@@ -296,19 +296,18 @@ class PortfolioAnalysisView(APIView):
         backtest = Backtest()
 
         for kospi in kospi_year:
-            date = kospi.date
             graph_kospi.append(
                 {
-                    'date': date,
+                    'date': kospi.date,
                     'data': present_val_sum * kospi.index / kospi_year_ago
                 }
             )
             portfolio_val_sum = 0
             for portfolio in portfolio_objects:
-                portfolio_val_sum += backtest.get_date_val(portfolio=portfolio, date=date)
+                portfolio_val_sum += backtest.get_date_val(portfolio=portfolio, date=kospi.date)
             graph_portfolio.append(
                 {
-                    'date': date,
+                    'date': kospi.date,
                     'data': portfolio_val_sum
                 }
             )
