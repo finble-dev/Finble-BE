@@ -522,8 +522,6 @@ class TestPortfolioAnalysisView(APIView):
                         original_quantity = backtest.calculate_quantity_original(original_portfolio_objects, original_ratio, original_portfolio_val_sum, example.date + relativedelta(days=5))
                     else:
                         original_quantity = backtest.calculate_quantity_original(original_portfolio_objects, original_ratio, present_val_sum, example.date + relativedelta(days=5))
-                        print(original_portfolio_objects, original_ratio, present_val_sum, example.date + relativedelta(days=5))
-                    print(original_quantity)
 
             # rebalancing
             if example.date >= datetime.now().date()-relativedelta(months=rebalance_month*6):
