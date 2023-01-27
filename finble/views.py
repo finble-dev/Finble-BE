@@ -313,9 +313,10 @@ class PortfolioAnalysisView(APIView):
         backtest = Backtest()
 
         i = 0
+        k = int(kospi_year.count() / 40)
         for kospi in kospi_year:
             i += 1
-            if i % 6 != 1:
+            if i % k != 1:
                 continue
             graph_kospi.append(
                 {
