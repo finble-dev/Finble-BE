@@ -42,10 +42,14 @@ def sort_ratio(category, ratio_list):
 
 class Backtest:
     def get_exchange_rate(self, date):
-        return ExchangeRate.objects.filter(date__lte=date).exclude(rate=None).order_by('-date')[0].rate
+        return ExchangeRate.objects.filter(date__gte=date).exclude(rate=None).order_by('-date')[0].rate
 
     def get_price(self, symbol, date):
-        return Price.objects.filter(symbol=symbol, date__lte=date).order_by('-date')[0].close
+        try:
+            return Price.objects.filter(symbol=symbol, date__lte=date).order_by('-date')[0].close
+        except:
+            return -1
+
 
     # def get_backtest_quantity(self, portfolio):
     #     stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
@@ -73,17 +77,30 @@ class Backtest:
         date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * backtest_quantity
         return date_val
 
-    def get_date_val_test(self, portfolio, date, present_val_sum):
+    def get_date_val_test(self, portfolio, date, rebalance_quantity):
         stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
-        stock_invested_val = portfolio.ratio * present_val_sum / 100
         past_date = datetime.now().date() - relativedelta(years=10)
-        past_price = self.get_price(stock.symbol, past_date)
-        quantity = stock_invested_val / past_price
         exchange_rate = 1
         if stock.market == 'US':
             exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
-        date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * quantity
+        date_val = self.get_price(symbol=portfolio.symbol, date=date) * exchange_rate * rebalance_quantity[portfolio.symbol_id]
         return date_val
+
+    def calculate_quantity(self, test_portfolio, date, val_sum):
+        quantity_list = {}
+        exchange_rate = 1
+        for portfolio in test_portfolio:
+            stock = get_object_or_404(Stock, symbol=portfolio.symbol_id)
+            if stock.market == 'US':
+                exchange_rate = self.get_exchange_rate(date=date)  # 당시 환율
+
+            if self.get_price(portfolio.symbol_id, date) == -1:
+                quantity_list[portfolio.symbol_id] = 0
+                # TODO: 비상장 주식 처리
+            else:
+                quantity_list[portfolio.symbol_id] = (val_sum * portfolio.ratio / 100) / (self.get_price(portfolio.symbol_id, date) * exchange_rate)
+                # print(date, portfolio.symbol_id, val_sum, exchange_rate)
+        return quantity_list
 
     def calculate_annual_average_profit(self, graph):
         profit_result = []
@@ -407,6 +424,7 @@ class TestPortfolioAnalysisView(APIView):
     def get(self, request):
         test_portfolio_objects = TestPortfolio.objects.filter(user=request.user.id)
         original_portfolio_objects = Portfolio.objects.filter(user=request.user.id)
+        invest_val_sum = 0
         present_val_sum = 0
         backtest = Backtest()
 
@@ -418,17 +436,22 @@ class TestPortfolioAnalysisView(APIView):
                 return response
 
         for portfolio in original_portfolio_objects:
+            invest_val_sum += calculate_profit(portfolio)[1]
             present_val_sum += calculate_profit(portfolio)[0]
 
         graph_original_portfolio = []
         graph_test_portfolio = []
+
+        rebalance_month = 19
+        rebalance_quantity = backtest.calculate_quantity(test_portfolio_objects, datetime.now().date()-relativedelta(years=10), present_val_sum)
+        original_quantity = {portfolio.symbol_id: (present_val_sum/backtest.get_price(portfolio.symbol_id, datetime.now().date()-relativedelta(years=10))) for portfolio in original_portfolio_objects}
 
         for example in Price.objects.filter(symbol=test_portfolio_objects[0].symbol, date__gte=datetime.now().date()-relativedelta(years=10)):
             original_portfolio_val_sum = 0
             test_portfolio_val_sum = 0
 
             for original_portfolio in original_portfolio_objects:
-                original_portfolio_val_sum += backtest.get_date_val(portfolio=original_portfolio, date=example.date)
+                original_portfolio_val_sum += original_quantity[original_portfolio.symbol_id] * backtest.get_price(original_portfolio.symbol_id, example.date)
 
             graph_original_portfolio.append(
                 {
@@ -438,7 +461,7 @@ class TestPortfolioAnalysisView(APIView):
             )
 
             for test_portfolio in test_portfolio_objects:
-                test_portfolio_val_sum += backtest.get_date_val_test(portfolio=test_portfolio, date=example.date, present_val_sum=float(present_val_sum))
+                test_portfolio_val_sum += backtest.get_date_val_test(portfolio=test_portfolio, date=example.date, rebalance_quantity=rebalance_quantity)
 
             graph_test_portfolio.append(
                 {
@@ -447,8 +470,14 @@ class TestPortfolioAnalysisView(APIView):
                 }
             )
 
-        annual_profit_original = backtest.calculate_annual_average_profit(graph_original_portfolio)
-        annual_profit_test = backtest.calculate_annual_average_profit(graph_test_portfolio)
+            # rebalancing
+            if example.date >= datetime.now().date()-relativedelta(months=rebalance_month*6):
+                rebalance_month -= 1
+                rebalance_quantity = backtest.calculate_quantity(test_portfolio_objects, example.date, test_portfolio_val_sum)
+                print(example.date, test_portfolio_val_sum, rebalance_quantity)
+
+        annual_profit_original = ((graph_original_portfolio[-1]['data']/graph_original_portfolio[0]['data']) ** 0.1 - 1) * 100
+        annual_profit_test = ((graph_test_portfolio[-1]['data']/graph_test_portfolio[0]['data']) ** 0.1 - 1) * 100
 
         original_portfolio_profit = (graph_original_portfolio[-1]['data'] - graph_original_portfolio[0]['data']) / graph_original_portfolio[0]['data'] * 100
         original_portfolio_max_loss = max(d['data'] for d in graph_original_portfolio) - min(d['data'] for d in graph_original_portfolio)
@@ -461,7 +490,7 @@ class TestPortfolioAnalysisView(APIView):
         response = {
             'status': status.HTTP_200_OK,
             'data': {
-                'present_val_sum': present_val_sum,
+                'invest_val_sum': invest_val_sum,
                 'final_val_test': graph_test_portfolio[-1]['data'],
                 'annual_profit_original': annual_profit_original,
                 'annual_profit_test': annual_profit_test,
