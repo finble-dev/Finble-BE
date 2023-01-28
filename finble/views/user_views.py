@@ -49,7 +49,7 @@ class GoogleLoginView(APIView):
                 "token": {
                     "access": access_token,
                     "refresh": refresh_token,
-                    "expiration_time": token_creation_time + timedelta(minutes=30)
+                    "expiration_time": token_creation_time + timedelta(minutes=5)
                 },
             },
             status=status.HTTP_200_OK,
