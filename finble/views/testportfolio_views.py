@@ -172,7 +172,7 @@ class TestPortfolioAnalysisView(APIView):
             'status': status.HTTP_200_OK,
             'data': {
                 'invest_val_sum': invest_val_sum,
-                'present_val_sum': graph_original_portfolio[0]['data'],
+                'present_val_sum': present_val_sum,
                 'final_val_test': graph_test_portfolio[-1]['data'],
                 'annual_profit_original': annual_profit_original,
                 'annual_profit_test': annual_profit_test,
