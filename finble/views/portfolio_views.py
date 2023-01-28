@@ -8,17 +8,21 @@ from multiprocessing import Pool
 from operator import itemgetter
 import requests
 
+
 class PortfolioView(APIView):
     def get(self, request):
         portfolios = Portfolio.objects.filter(user=request.user.id)
         serializer = PortfolioSerializer(portfolios, many=True)
-        response = {
-            'status': status.HTTP_200_OK,
-            'data': []
-        }
+        total_gain = 0
+        total_invested = 0
+
+        data = []
+
         for i in range(portfolios.count()):
             stock = get_object_or_404(Stock, symbol=portfolios[i].symbol_id)
-            response['data'].append(
+            total_gain += calculate_profit(portfolios[i])[2]
+            total_invested += calculate_profit(portfolios[i])[1]
+            data.append(
                 {
                     'portfolio': serializer.data[i],
                     'stock_detail': StockSerializer(stock).data,
@@ -27,6 +31,13 @@ class PortfolioView(APIView):
                     'profit_rate': calculate_profit(portfolios[i])[3]
                 }
             )
+        response = {
+            'status': status.HTTP_200_OK,
+            'data': data,
+            'total_gain': total_gain,
+            'total_profit_rate': total_gain / total_invested * 100
+        }
+
         return Response(response)
 
     def post(self, request):
