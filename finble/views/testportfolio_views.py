@@ -102,12 +102,15 @@ class TestPortfolioAnalysisView(APIView):
 
         example_list = Price.objects.filter(symbol='AAPL', date__gte=datetime.now().date()-relativedelta(years=10))
         temp = example_list[0].date.month
+        temp_slice = 0
+
         for example in example_list:
             if example.date.month == temp:
                 continue
             temp = example.date.month
             original_portfolio_val_sum = 0
             test_portfolio_val_sum = 0
+
 
             for original_portfolio in original_portfolio_objects:
                 original_portfolio_val_sum += original_quantity[original_portfolio.symbol_id] * backtest.get_price(original_portfolio.symbol_id, example.date)
@@ -126,6 +129,7 @@ class TestPortfolioAnalysisView(APIView):
                         'data': None
                     }
                 )
+                temp_slice = len(graph_original_portfolio)
 
             for test_portfolio in test_portfolio_objects:
                 test_portfolio_val_sum += backtest.get_date_val_test(portfolio=test_portfolio, date=example.date, rebalance_quantity=rebalance_quantity)
@@ -152,12 +156,13 @@ class TestPortfolioAnalysisView(APIView):
                 rebalance_quantity = backtest.calculate_quantity(test_portfolio_objects, example.date, test_portfolio_val_sum)
                 # print(example.date, test_portfolio_val_sum, rebalance_quantity)
 
-        annual_profit_original = ((graph_original_portfolio[-1]['data']/graph_original_portfolio[0]['data']) ** 0.1 - 1) * 100
+        temp_original_portfolio = graph_original_portfolio[temp_slice:-1]
+        annual_profit_original = ((temp_original_portfolio[-1]['data']/temp_original_portfolio[0]['data']) ** 0.1 - 1) * 100
         annual_profit_test = ((graph_test_portfolio[-1]['data']/graph_test_portfolio[0]['data']) ** 0.1 - 1) * 100
 
-        original_portfolio_profit = (graph_original_portfolio[-1]['data'] - graph_original_portfolio[0]['data']) / graph_original_portfolio[0]['data'] * 100
-        original_portfolio_max_loss = max(d['data'] for d in graph_original_portfolio) - min(d['data'] for d in graph_original_portfolio)
-        original_portfolio_max_fall = original_portfolio_max_loss / max(d['data'] for d in graph_original_portfolio) * 100
+        original_portfolio_profit = (temp_original_portfolio[-1]['data'] - temp_original_portfolio[0]['data']) / temp_original_portfolio[0]['data'] * 100
+        original_portfolio_max_loss = max(d['data'] for d in temp_original_portfolio) - min(d['data'] for d in temp_original_portfolio)
+        original_portfolio_max_fall = original_portfolio_max_loss / max(d['data'] for d in temp_original_portfolio) * 100
 
         test_portfolio_profit = (graph_test_portfolio[-1]['data'] - graph_test_portfolio[0]['data']) / graph_test_portfolio[0]['data'] * 100
         test_portfolio_max_loss = max(d['data'] for d in graph_test_portfolio) - min(d['data'] for d in graph_test_portfolio)
