@@ -119,6 +119,13 @@ class TestPortfolioAnalysisView(APIView):
                         'data': original_portfolio_val_sum
                     }
                 )
+            else:
+                graph_original_portfolio.append(
+                    {
+                        'date': example.date,
+                        'data': None
+                    }
+                )
 
             for test_portfolio in test_portfolio_objects:
                 test_portfolio_val_sum += backtest.get_date_val_test(portfolio=test_portfolio, date=example.date, rebalance_quantity=rebalance_quantity)
