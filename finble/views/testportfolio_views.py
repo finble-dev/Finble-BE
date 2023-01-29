@@ -76,6 +76,7 @@ class TestPortfolioAnalysisView(APIView):
         not_listed_stocks = []
         original_ratio = {}
         backtest = Backtest()
+        ratio_sum = 0
 
         for test_portfolio in test_portfolio_objects:
             if test_portfolio.ratio is None:
@@ -83,6 +84,13 @@ class TestPortfolioAnalysisView(APIView):
                     "message": "test portfolio's ratio is None"
                 }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
                 return response
+            ratio_sum += test_portfolio.ratio
+
+        print(ratio_sum)
+        if ratio_sum != 100:
+            return Response({
+                "message": "비중 합이 100%가 되어야 합니다"
+            }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         for portfolio in original_portfolio_objects:
             invest_val_sum += calculate_profit(portfolio)[1]
