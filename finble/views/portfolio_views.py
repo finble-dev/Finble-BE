@@ -170,13 +170,8 @@ class PortfolioAnalysisView(APIView):
             )
 
         kospi_profit = (graph_kospi[-1]['data'] - graph_kospi[0]['data']) / graph_kospi[0]['data'] * 100
-
-        peak = max(d['data'] for d in graph_kospi)
-        drawdown = []
-        for d in graph_kospi:
-            drawdown.append(d['data']/peak - 1)
-        kospi_max_loss = min(drawdown)
-        kospi_max_fall = kospi_max_loss / peak * 100
+        kospi_max_loss = max(d['data'] for d in graph_kospi) - min(d['data'] for d in graph_kospi)
+        kospi_max_fall = kospi_max_loss / max(d['data'] for d in graph_kospi) * 100
         portfolio_profit = (graph_portfolio[-1]['data'] - graph_portfolio[0]['data']) / graph_portfolio[0]['data'] * 100
         portfolio_max_loss = max(d['data'] for d in graph_portfolio) - min(d['data'] for d in graph_portfolio)
         portfolio_max_fall = portfolio_max_loss / max(d['data'] for d in graph_portfolio) * 100
