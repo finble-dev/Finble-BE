@@ -170,11 +170,12 @@ class PortfolioAnalysisView(APIView):
             )
 
         kospi_profit = (graph_kospi[-1]['data'] - graph_kospi[0]['data']) / graph_kospi[0]['data'] * 100
-        kospi_max_loss = max(d['data'] for d in graph_kospi) - min(d['data'] for d in graph_kospi)
-        kospi_max_fall = kospi_max_loss / max(d['data'] for d in graph_kospi) * 100
+
+        kospi_max_loss = calculate_max_fall(graph_kospi)[0]
+        kospi_max_fall = calculate_max_fall(graph_kospi)[1]
         portfolio_profit = (graph_portfolio[-1]['data'] - graph_portfolio[0]['data']) / graph_portfolio[0]['data'] * 100
-        portfolio_max_loss = max(d['data'] for d in graph_portfolio) - min(d['data'] for d in graph_portfolio)
-        portfolio_max_fall = portfolio_max_loss / max(d['data'] for d in graph_portfolio) * 100
+        portfolio_max_loss = calculate_max_fall(graph_portfolio)[0]
+        portfolio_max_fall = calculate_max_fall(graph_portfolio)[1]
 
         response = {
             'status': status.HTTP_200_OK,

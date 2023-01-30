@@ -28,6 +28,26 @@ def sort_ratio(category, ratio_list):
         return sorted_list
 
 
+def calculate_max_fall(graph):
+    graph_data = []
+
+    for d in graph:
+        graph_data.append(d['data'])
+
+    peak = graph_data[0]
+    max_loss = 0
+    max_fall = 0
+
+    for data in graph_data:
+        if max_loss > data - peak:
+            max_loss = data - peak
+            max_fall = max_loss / peak * 100
+        if data > peak:
+            peak = data
+
+    return max_loss, max_fall
+
+
 class Backtest:
     def get_exchange_rate(self, date):
         return ExchangeRate.objects.filter(date__gte=date).exclude(rate=None).order_by('-date')[0].rate
