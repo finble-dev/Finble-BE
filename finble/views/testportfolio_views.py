@@ -169,17 +169,26 @@ class TestPortfolioAnalysisView(APIView):
             'data']) ** 0.1 - 1) * 100
 
         original_portfolio_profit = (temp_original_portfolio[-1]['data'] - temp_original_portfolio[0]['data']) / temp_original_portfolio[0]['data'] * 100
-        original_portfolio_max_loss = max(d['data'] for d in temp_original_portfolio) - min(d['data'] for d in temp_original_portfolio)
-        original_portfolio_max_fall = original_portfolio_max_loss / max(d['data'] for d in temp_original_portfolio) * 100
+
+        original_peak = max(d['data'] for d in temp_original_portfolio)
+        original_drawdown = []
+        for d in temp_original_portfolio:
+            original_drawdown.append(d['data']/original_peak - 1)
+        original_portfolio_max_loss = min(original_drawdown)
+        original_portfolio_max_fall = original_portfolio_max_loss / original_peak * 100
 
         if graph_test_portfolio:
             annual_profit_test = ((graph_test_portfolio[-1]['data'] / graph_test_portfolio[0]['data']) ** 0.1 - 1) * 100
 
             test_portfolio_profit = (graph_test_portfolio[-1]['data'] - graph_test_portfolio[0]['data']) / \
                                     graph_test_portfolio[0]['data'] * 100
-            test_portfolio_max_loss = max(d['data'] for d in graph_test_portfolio) - min(
-                d['data'] for d in graph_test_portfolio)
-            test_portfolio_max_fall = test_portfolio_max_loss / max(d['data'] for d in graph_test_portfolio) * 100
+
+            test_peak = max(d['data'] for d in graph_test_portfolio)
+            test_drawdown = []
+            for d in graph_test_portfolio:
+                test_drawdown.append(d['data'] / test_peak - 1)
+            test_portfolio_max_loss = min(test_drawdown)
+            test_portfolio_max_fall = test_portfolio_max_loss / test_peak * 100
             final_val_test = graph_test_portfolio[-1]['data']
         else:
             annual_profit_test = 0
