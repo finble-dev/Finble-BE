@@ -39,8 +39,8 @@ def calculate_max_fall(graph):
     max_fall = 0
 
     for data in graph_data:
-        if max_loss > data - peak:
-            max_loss = data - peak
+        if max_loss < peak - data:
+            max_loss = peak - data
             max_fall = max_loss / peak * 100
         if data > peak:
             peak = data
