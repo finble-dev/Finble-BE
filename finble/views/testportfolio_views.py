@@ -76,6 +76,7 @@ class TestPortfolioAnalysisView(APIView):
         not_listed_stocks = []
         original_ratio = {}
         backtest = Backtest()
+        ratio_sum = 0
 
         for test_portfolio in test_portfolio_objects:
             if test_portfolio.ratio is None:
@@ -83,6 +84,13 @@ class TestPortfolioAnalysisView(APIView):
                     "message": "test portfolio's ratio is None"
                 }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
                 return response
+            ratio_sum += test_portfolio.ratio
+
+        print(ratio_sum)
+        if ratio_sum != 100:
+            return Response({
+                "message": "비중 합이 100%가 되어야 합니다"
+            }, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
         for portfolio in original_portfolio_objects:
             invest_val_sum += calculate_profit(portfolio)[1]
@@ -157,22 +165,35 @@ class TestPortfolioAnalysisView(APIView):
                 # print(example.date, test_portfolio_val_sum, rebalance_quantity)
 
         temp_original_portfolio = graph_original_portfolio[temp_slice:-1]
-        annual_profit_original = ((temp_original_portfolio[-1]['data']/temp_original_portfolio[0]['data']) ** 0.1 - 1) * 100
-        annual_profit_test = ((graph_test_portfolio[-1]['data']/graph_test_portfolio[0]['data']) ** 0.1 - 1) * 100
+        annual_profit_original = ((temp_original_portfolio[-1]['data'] / temp_original_portfolio[0][
+            'data']) ** 0.1 - 1) * 100
 
         original_portfolio_profit = (temp_original_portfolio[-1]['data'] - temp_original_portfolio[0]['data']) / temp_original_portfolio[0]['data'] * 100
         original_portfolio_max_loss = max(d['data'] for d in temp_original_portfolio) - min(d['data'] for d in temp_original_portfolio)
         original_portfolio_max_fall = original_portfolio_max_loss / max(d['data'] for d in temp_original_portfolio) * 100
 
-        test_portfolio_profit = (graph_test_portfolio[-1]['data'] - graph_test_portfolio[0]['data']) / graph_test_portfolio[0]['data'] * 100
-        test_portfolio_max_loss = max(d['data'] for d in graph_test_portfolio) - min(d['data'] for d in graph_test_portfolio)
-        test_portfolio_max_fall = test_portfolio_max_loss / max(d['data'] for d in graph_test_portfolio) * 100
+        if graph_test_portfolio:
+            annual_profit_test = ((graph_test_portfolio[-1]['data'] / graph_test_portfolio[0]['data']) ** 0.1 - 1) * 100
+
+            test_portfolio_profit = (graph_test_portfolio[-1]['data'] - graph_test_portfolio[0]['data']) / \
+                                    graph_test_portfolio[0]['data'] * 100
+            test_portfolio_max_loss = max(d['data'] for d in graph_test_portfolio) - min(
+                d['data'] for d in graph_test_portfolio)
+            test_portfolio_max_fall = test_portfolio_max_loss / max(d['data'] for d in graph_test_portfolio) * 100
+            final_val_test = graph_test_portfolio[-1]['data']
+        else:
+            annual_profit_test = 0
+            test_portfolio_profit = 0
+            test_portfolio_max_loss = 0
+            test_portfolio_max_fall = 0
+            final_val_test = 0
 
         response = {
             'status': status.HTTP_200_OK,
             'data': {
                 'invest_val_sum': invest_val_sum,
-                'final_val_test': graph_test_portfolio[-1]['data'],
+                'present_val_sum': present_val_sum,
+                'final_val_test': final_val_test,
                 'annual_profit_original': annual_profit_original,
                 'annual_profit_test': annual_profit_test,
                 'graph_original_portfolio': graph_original_portfolio,
