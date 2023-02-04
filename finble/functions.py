@@ -20,7 +20,7 @@ def calculate_profit(portfolio):
 def sort_ratio(category, ratio_list):
     sorted_list = sorted(ratio_list, key=itemgetter('ratio'), reverse=True)
     if len(sorted_list) > 8:
-        sorted_list[7][category] = "기타"
+        sorted_list[7][category] = {"name": "기타"}
         for i in range(8, len(sorted_list)):
             sorted_list[7]['ratio'] += sorted_list[i]['ratio']
         return sorted_list[0:8]
