@@ -15,6 +15,7 @@ class PortfolioView(APIView):
         serializer = PortfolioSerializer(portfolios, many=True)
         total_gain = 0
         total_invested = 0
+        total_profit_rate = 0
 
         data = []
 
@@ -31,11 +32,14 @@ class PortfolioView(APIView):
                     'profit_rate': calculate_profit(portfolios[i])[3]
                 }
             )
+
+        if total_invested != 0:
+            total_profit_rate = total_gain / total_invested * 100
         response = {
             'status': status.HTTP_200_OK,
             'data': data,
             'total_gain': total_gain,
-            'total_profit_rate': total_gain / total_invested * 100
+            'total_profit_rate': total_profit_rate
         }
 
         return Response(response)
