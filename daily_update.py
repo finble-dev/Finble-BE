@@ -1,5 +1,6 @@
 import os
 import django
+
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'finble_backend.settings')
 django.setup()
 
@@ -90,3 +91,6 @@ def update_exchangerate_data_to_db_daily():
 
 def test_print():
     print("test")
+
+
+test_print()
