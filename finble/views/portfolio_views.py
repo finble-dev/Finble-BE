@@ -78,9 +78,9 @@ class PortfolioView(APIView):
             return Response(serializer1.errors, status=400)
 
         else:
-            new_quantity = portfolio.quantity + request.data.get("quantity")
-            new_average_price = (portfolio.average_price * portfolio.quantity + request.data.get(
-                "average_price") * request.data.get("quantity")) / new_quantity
+            new_quantity = portfolio.quantity + float(request.data.get("quantity"))
+            new_average_price = (portfolio.average_price * portfolio.quantity + float(request.data.get(
+                "average_price")) * float(request.data.get("quantity"))) / new_quantity
             data = {
                 "symbol": request.data.get("symbol"),
                 "user": request.user.id,
