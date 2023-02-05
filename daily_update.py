@@ -86,3 +86,7 @@ def update_exchangerate_data_to_db_daily():
         print(f'Got An Error on Exchange Rate (Database):{today}')
 
     print(f'====== Day: {today} FINISH update Exchange Rate table datas ======')
+
+
+def test_print():
+    print("test")
