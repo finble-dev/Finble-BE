@@ -27,7 +27,6 @@ class GoogleLoginView(APIView):
             data = {
                 "name": jsondata['name'],
                 "first_name": jsondata['given_name'],
-                "last_name": jsondata['family_name'],
                 "email": jsondata['email'],
                 "password": make_password(BaseUserManager().make_random_password())  # provide random default password
             }
