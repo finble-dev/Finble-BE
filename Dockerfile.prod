@@ -47,6 +47,7 @@ COPY --from=builder /usr/src/app/requirements.txt .
 RUN apt-get update -y && apt-get install -y build-essential libmariadb-dev
 RUN pip install mysqlclient
 RUN pip install finance-datareader
+RUN pip install cron
 RUN pip install --no-cache /wheels/*
 
 # copy entrypoint-prod.sh
