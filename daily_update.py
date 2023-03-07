@@ -9,7 +9,6 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from finble.models import *
 
-
 def update_kr_data_to_db_daily():
     stock_list = Stock.objects.filter(market='KR')
     now = datetime.now()
@@ -56,7 +55,6 @@ def update_us_data_to_db_daily():
 
 def update_kospi_data_to_db_daily():
     today = datetime.now()
-
     try:
         datas = fdr.DataReader('KS11', today)['Close']
     except:
@@ -64,7 +62,7 @@ def update_kospi_data_to_db_daily():
 
     Kospi.objects.create(
         date=datas.index[0],
-        close=datas[datas.index[0]]
+        index=datas[datas.index[0]]
     )
 
     print(f'====== Day: {today} FINISH update Kospi table datas ======')
@@ -92,5 +90,4 @@ def update_exchangerate_data_to_db_daily():
 def test_print():
     print("test")
 
-
-test_print()
+update_kospi_data_to_db_daily()
