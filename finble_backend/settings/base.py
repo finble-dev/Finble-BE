@@ -47,9 +47,13 @@ INSTALLED_APPS = [
     'finble.apps.FinbleConfig',
     'rest_framework',
     'rest_framework_simplejwt',
-    'django_crontab',
+    'django_apscheduler',
     'corsheaders',
 ]
+
+APSCHEDULER_DATETIME_FORMAT = "N j, Y, f:s a"  # Default
+
+SCHEDULER_DEFAULT = True
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -171,16 +175,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-CRONTAB_DJANGO_SETTINGS_MODULE = 'finble_backend.settings'
-
-CRONJOBS = [
-    ('* * * * *', 'finble.daily_update.test_print', '>> /home/ubuntu/srv/ubuntu/cron.log'),
-    ('40 15 * * MON-FRI', 'daily_update.update_kr_data_to_db_daily'),
-    ('30 6 * * TUE-SAT', 'daily_update.update_us_data_to_db_daily'),
-    ('40 15 * * MON-FRI', 'daily_update.update_kopsi_data_to_db_daily'),
-    ('40 15 * * MON-FRI', 'daily_update.update_exchangerate_data_to_db_daily'),
-]
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),

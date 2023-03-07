@@ -1,8 +1,8 @@
-import os
-import django
-
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'finble_backend.settings')
-django.setup()
+# import os
+# import django
+#
+# os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'finble_backend.settings')
+# django.setup()
 
 import FinanceDataReader as fdr
 from datetime import datetime
@@ -91,3 +91,4 @@ def update_exchangerate_data_to_db_daily():
 
 def test_print():
     print("test")
+
