@@ -3,6 +3,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from finble.models import *
 
+
 def update_kr_data_to_db_daily():
     stock_list = Stock.objects.filter(market='KR')
     now = datetime.now()
@@ -14,13 +15,15 @@ def update_kr_data_to_db_daily():
         except:
             print(f'Got An Error on Symbol:{stock.symbol:8}')
             continue
-
-        Price.objects.create(
-            symbol=Stock.objects.get(symbol=stock.symbol),
-            date=datas.index[0],
-            close=datas[datas.index[0]]
-        )
-        count += 1
+        try:
+            Price.objects.create(
+                symbol=Stock.objects.get(symbol=stock.symbol),
+                date=datas.index[0],
+                close=datas[datas.index[0]]
+            )
+            count += 1
+        except:
+            continue
 
     print(f'====== Day: {now} FINISH update KR Price table {count} datas ======')
 
@@ -36,13 +39,15 @@ def update_us_data_to_db_daily():
         except:
             print(f'Got An Error on Symbol:{stock.symbol:8}')
             continue
-
-        Price.objects.create(
-            symbol=Stock.objects.get(symbol=stock.symbol),
-            date=datas.index[0],
-            close=datas[datas.index[0]]
-        )
-        count += 1
+        try:
+            Price.objects.create(
+                symbol=Stock.objects.get(symbol=stock.symbol),
+                date=datas.index[0],
+                close=datas[datas.index[0]]
+            )
+            count += 1
+        except:
+            continue
 
     print(f'====== Day: {today} FINISH update US Price table {count} datas ======')
 
@@ -54,10 +59,13 @@ def update_kospi_data_to_db_daily():
     except:
         print(f'Got An Error on Kospi:{today}')
 
-    Kospi.objects.create(
-        date=datas.index[0],
-        index=datas[datas.index[0]]
-    )
+    try:
+        Kospi.objects.create(
+            date=datas.index[0],
+            index=datas[datas.index[0]]
+        )
+    except:
+        print(f'Got An Error on Kospi (Database):{today}')
 
     print(f'====== Day: {today} FINISH update Kospi table datas ======')
 
