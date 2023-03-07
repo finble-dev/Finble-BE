@@ -175,7 +175,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CRONTAB_DJANGO_SETTINGS_MODULE = 'finble_backend.settings'
 
 CRONJOBS = [
-    ('* * * * *', './srv/ubuntu/daily_update.test_print', '>> ./cron.log'),
+    ('* * * * *', 'finble.daily_update.test_print', '>> /home/ubuntu/srv/ubuntu/cron.log'),
     ('40 15 * * MON-FRI', 'daily_update.update_kr_data_to_db_daily'),
     ('30 6 * * TUE-SAT', 'daily_update.update_us_data_to_db_daily'),
     ('40 15 * * MON-FRI', 'daily_update.update_kopsi_data_to_db_daily'),
