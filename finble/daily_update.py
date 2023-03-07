@@ -48,6 +48,7 @@ def update_us_data_to_db_daily():
 
 
 def update_kospi_data_to_db_daily():
+    today = datetime.now()
     try:
         datas = fdr.DataReader('KS11', today)['Close']
     except:
