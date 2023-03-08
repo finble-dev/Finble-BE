@@ -1,5 +1,3 @@
-import os
-
 from django.apps import AppConfig
 from django.conf import settings
 
@@ -8,7 +6,6 @@ class FinbleConfig(AppConfig):
     name = 'finble'
 
     def ready(self):
-        if os.environ.get('RUN_MAIN'):
-            if settings.SCHEDULER_DEFAULT:
-                from . import operator
-                operator.start()
+        if settings.SCHEDULER_DEFAULT:
+            from . import operator
+            operator.start()
