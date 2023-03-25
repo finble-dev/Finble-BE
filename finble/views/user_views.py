@@ -51,8 +51,8 @@ class GoogleLoginView(APIView):
             },
             status=status.HTTP_200_OK,
         )
-        res.set_cookie("access", access_token, httponly=True)
-        res.set_cookie("refresh", refresh_token, httponly=True)
+        # res.set_cookie("access", access_token, httponly=True)
+        res.set_cookie("refresh", refresh_token, httponly=True, secure=True, samesite="None")
         return res
 
 
@@ -61,6 +61,6 @@ class LogoutView(APIView):
         response = Response({
             "message": "Logout success"
             }, status=status.HTTP_202_ACCEPTED)
-        response.delete_cookie('access')
+        # response.delete_cookie('access')
         response.delete_cookie('refresh')
         return response
