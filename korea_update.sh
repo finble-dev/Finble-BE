@@ -1,5 +1,0 @@
-#!/bin/bash
-
-python daily_update.update_kr_data_to_db_daily
-python daily_update.update_kopsi_data_to_db_daily
-python daily_update.update_exchangerate_data_to_db_daily
