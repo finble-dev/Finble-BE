@@ -56,6 +56,13 @@ class GoogleLoginView(APIView):
         return res
 
 
+class GetUserInfoView(APIView):
+    def get(self, request):
+        user = User.objects.filter(id=request.user.id)
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 class LogoutView(APIView):
     def post(self, request):
         response = Response({
