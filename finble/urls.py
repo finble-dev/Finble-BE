@@ -5,7 +5,7 @@ from django.urls import path
 urlpatterns = [
     path('login/', user_views.GoogleLoginView.as_view()),
     path('login/refresh/', TokenRefreshView.as_view()),
-    path('get-user-info/', user_views.GetUserInfoView.as_view()),
+    path('user-info/', user_views.GetUserInfoView.as_view()),
     path('logout/', user_views.LogoutView.as_view()),
     path('portfolio/', portfolio_views.PortfolioView.as_view()),
     path('portfolio/analysis/', portfolio_views.PortfolioAnalysisView.as_view()),
