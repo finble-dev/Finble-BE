@@ -23,7 +23,7 @@ class StockView(APIView):
 
 
 class ContactView(APIView):
-    permissions_classes = [AllowAny]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         data = {

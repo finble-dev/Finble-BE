@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import requests
 
 class GoogleLoginView(APIView):
-    permissions_classes = [AllowAny]
+    permission_classes = [AllowAny]
     def post(self, request):
         payload = {'access_token': request.data.get('token')}  # validate the token
         r = requests.get('https://www.googleapis.com/oauth2/v1/userinfo', params=payload)
