@@ -4,12 +4,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from ..serializers import *
 from datetime import datetime, timedelta
 import requests
 
 class GoogleLoginView(APIView):
+    permissions_classes = [AllowAny]
     def post(self, request):
         payload = {'access_token': request.data.get('token')}  # validate the token
         r = requests.get('https://www.googleapis.com/oauth2/v1/userinfo', params=payload)

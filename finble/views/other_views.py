@@ -2,6 +2,7 @@ from django.shortcuts import render
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from django.db.models import Q
 from ..serializers import *
 from ..functions import *
@@ -22,6 +23,8 @@ class StockView(APIView):
 
 
 class ContactView(APIView):
+    permissions_classes = [AllowAny]
+
     def post(self, request):
         data = {
             "contact": request.data.get("contact"),
