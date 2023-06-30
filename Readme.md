@@ -18,3 +18,4 @@
 ## ERD
 <img width="797" alt="스크린샷 2023-06-30 오후 1 12 50" src="https://github.com/finble-dev/Finble-BE/assets/86969518/64fd75df-26e8-4643-8595-b143091c3b46">
 
+> django apscheduler를 이용해 주가 정보, 환율 정보, 코스피 정보 데이터가 하루에 한번씩 업데이트됨
