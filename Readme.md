@@ -18,3 +18,5 @@
 ## ERD
 <img width="797" alt="스크린샷 2023-06-30 오후 1 12 50" src="https://github.com/finble-dev/Finble-BE/assets/86969518/64fd75df-26e8-4643-8595-b143091c3b46">
 
+<img width="980" alt="핀블_상세페이지" src="https://github.com/finble-dev/.github/assets/86969518/10a0c95d-6514-43a3-8747-b16a9265ebc6">
+
